@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Lentes | Citas</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script src="js/tailwind-config.js"></script>
+    <link href="css/style.css" rel="stylesheet">
+    <script src="js/app.js"></script>
+
+</head>
+<body class="bg-surface font-body text-on-surface">
+    <div id="root">
+        
+    <!-- Sidebar Overlay (Mobile) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- SideNavBar -->
+    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-slate-50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col py-6 sidebar-transition lg:translate-x-0 -translate-x-full">
+        <!-- Fixed Header in Sidebar -->
+        <div class="px-6 mb-8 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
+                    <img src="https://lh3.googleusercontent.com/aida/ADBb0ugSC5blHPIwgGwZjPWIWYKN0Xh3oRWm2HMrIOYbyO1ELYOAOHSJKK3nIr1RfrcJdvnU2aZ66brRxABuKt3KJ0vbUPkKtJV8MGGUEypFiYKplf7bwqcnoiNYbqnr88gS5DCk4Awi-f5BR2mO1YpG93VlAgXnrUiCPfBhSNdrxCnnVelEjghrQyvxKguJpm6GQPjtPYQaRgXHAB4etIBqs5pRdbFBp8ae201C2njkXv_gEG1RrUVnuL_yG6X_H2__k-NSZjsbC21cSA" alt="Dr. Lentes Ópticas" class="w-full h-full object-cover">
+                </div>
+                <div class="logo-text overflow-hidden whitespace-nowrap">
+                    <h1 class="text-xl font-bold bg-gradient-to-br from-sky-700 to-sky-400 bg-clip-text text-transparent font-headline leading-none">Dr. Lentes</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Ópticas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Navigation -->
+        <nav class="flex-1 space-y-1 px-4 overflow-y-auto">
+            <a href="dashboard.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
+                <span class="nav-label whitespace-nowrap">Tablero</span>
+            </a>
+            <a href="ventas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="payments">payments</span>
+                <span class="nav-label whitespace-nowrap">Ventas</span>
+            </a>
+            <a href="inventario.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="inventory_2">inventory_2</span>
+                <span class="nav-label whitespace-nowrap">Inventario</span>
+            </a>
+            <a href="historias-clinicas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="clinical_notes">clinical_notes</span>
+                <span class="nav-label whitespace-nowrap">Historias Clínicas</span>
+            </a>
+            <a href="citas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
+                <span class="nav-label whitespace-nowrap">Citas</span>
+            </a>
+        </nav>
+
+        <!-- Footer actions in Sidebar -->
+        <div class="px-4 mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 space-y-1">
+            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
+                <span class="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
+                <span class="nav-label whitespace-nowrap">Configuración</span>
+            </a>
+            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
+                <span class="material-symbols-outlined shrink-0" data-icon="logout">logout</span>
+                <span class="nav-label whitespace-nowrap">Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+        
+    <!-- TopNavBar -->
+    <header id="header" class="fixed top-0 right-0 h-16 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
+        <div class="flex items-center gap-4 w-full sm:w-auto flex-1">
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 lg:hidden">
+                <span class="material-symbols-outlined" data-icon="menu">menu</span>
+            </button>
+            <div class="relative flex-1 max-w-md hidden sm:block">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" data-icon="search">search</span>
+                <input type="text" placeholder="Buscar pacientes, registros o inventario..." class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none">
+            </div>
+            <!-- Mobile search button -->
+            <button class="sm:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 ml-auto">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4">
+                <button class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors relative hidden sm:block" title="Notificaciones">
+                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+            <div class="h-8 w-[1px] bg-slate-100 hidden sm:block"></div>
+            <div class="flex items-center gap-3 cursor-pointer group">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-on-surface leading-none group-hover:text-primary transition-colors">Dr. Roberto Smith</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Optometrista</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0">R</div>
+            </div>
+        </div>
+    </header>
+
+        <main id="main-content" class="pt-16 min-h-screen pb-20 sidebar-transition lg:ml-64 ml-0 overflow-x-hidden">
+            
+<!-- Header Controls / Date Selector -->
+<section class="mb-8">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div>
+<h2 class="text-2xl font-bold headline text-on-surface tracking-tight">Agenda Operativa</h2>
+<p class="text-on-surface-variant text-sm">Gestiona las citas y flujo de pacientes del día.</p>
+</div>
+<div class="glass-card p-1 rounded-full flex items-center shadow-sm border border-white/20">
+<button class="px-5 py-2 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Ayer</button>
+<button class="px-6 py-2 text-sm font-bold bg-gradient-to-br from-[#00658d] to-[#00aeef] text-white rounded-full shadow-md">Hoy</button>
+<button class="px-5 py-2 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Mañana</button>
+<div class="w-[1px] h-4 bg-outline-variant mx-2"></div>
+<button class="p-2 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Kanban Board Layout -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+<!-- Column 1: Dr. Roberto -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-8 bg-primary rounded-full"></div>
+<h3 class="text-lg font-bold headline">Dr. Roberto</h3>
+</div>
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-xs font-bold text-on-surface-variant">4 Citas</span>
+</div>
+<div class="space-y-4">
+<!-- Regular Evaluation Card -->
+<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-primary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="absolute top-0 right-0 p-3">
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="more_vert">more_vert</span>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<span class="text-primary-container text-[10px] font-bold uppercase tracking-widest bg-primary-container/10 px-2 py-0.5 rounded">Evaluación Regular</span>
+<span class="text-slate-400 text-xs font-medium">09:00 AM</span>
+</div>
+<h4 class="text-on-surface font-bold text-lg mb-1">Carlos Mendoza</h4>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="description">description</span>
+<span>Examen de refracción anual</span>
+</div>
+</div>
+<!-- Urgent Card -->
+<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-error relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="absolute top-0 right-0 p-3">
+<span class="material-symbols-outlined text-slate-300 group-hover:text-error transition-colors" data-icon="priority_high">priority_high</span>
+</div>
+<div class="flex items-center gap-2 mb-3">
+<span class="text-error text-[10px] font-bold uppercase tracking-widest bg-error/10 px-2 py-0.5 rounded">Urgencia Clínica</span>
+<span class="text-slate-400 text-xs font-medium">10:30 AM</span>
+</div>
+<h4 class="text-on-surface font-bold text-lg mb-1">Elena Rivas</h4>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="medical_services">medical_services</span>
+<span>Cuerpo extraño en ojo derecho</span>
+</div>
+</div>
+<!-- Delivery Card -->
+<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-tertiary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="flex items-center gap-2 mb-3">
+<span class="text-tertiary-container text-[10px] font-bold uppercase tracking-widest bg-tertiary-container/10 px-2 py-0.5 rounded">Entrega de Lentes</span>
+<span class="text-slate-400 text-xs font-medium">11:45 AM</span>
+</div>
+<h4 class="text-on-surface font-bold text-lg mb-1">Jorge Batlle</h4>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="eyeglasses">eyeglasses</span>
+<span>Montura Ray-Ban + Cristales Filtro Azul</span>
+</div>
+</div>
+<!-- Empty Slot -->
+<div class="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-slate-400 hover:border-primary-container hover:text-primary-container transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-2" data-icon="add_circle">add_circle</span>
+<span class="text-xs font-bold uppercase tracking-wider">Asignar Cita</span>
+</div>
+</div>
+</div>
+<!-- Column 2: Dra. Sara -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-3">
+<div class="w-2 h-8 bg-[#00aeef] rounded-full"></div>
+<h3 class="text-lg font-bold headline">Dra. Sara</h3>
+</div>
+<span class="bg-surface-container-high px-3 py-1 rounded-full text-xs font-bold text-on-surface-variant">3 Citas</span>
+</div>
+<div class="space-y-4">
+<!-- Delivery Card -->
+<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-tertiary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="flex items-center gap-2 mb-3">
+<span class="text-tertiary-container text-[10px] font-bold uppercase tracking-widest bg-tertiary-container/10 px-2 py-0.5 rounded">Entrega de Lentes</span>
+<span class="text-slate-400 text-xs font-medium">09:15 AM</span>
+</div>
+<h4 class="text-on-surface font-bold text-lg mb-1">Lucía Fernández</h4>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="local_shipping">local_shipping</span>
+<span>Lentes de contacto multifocales</span>
+</div>
+</div>
+<!-- Regular Evaluation Card -->
+<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-primary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="flex items-center gap-2 mb-3">
+<span class="text-primary-container text-[10px] font-bold uppercase tracking-widest bg-primary-container/10 px-2 py-0.5 rounded">Evaluación Regular</span>
+<span class="text-slate-400 text-xs font-medium">10:00 AM</span>
+</div>
+<h4 class="text-on-surface font-bold text-lg mb-1">Mario Quintana</h4>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+<span>Seguimiento post-operatorio</span>
+</div>
+</div>
+<!-- Regular Evaluation Card -->
+<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-primary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
+<div class="flex items-center gap-2 mb-3">
+<span class="text-primary-container text-[10px] font-bold uppercase tracking-widest bg-primary-container/10 px-2 py-0.5 rounded">Evaluación Regular</span>
+<span class="text-slate-400 text-xs font-medium">12:30 PM</span>
+</div>
+<h4 class="text-on-surface font-bold text-lg mb-1">Sofía Rossi</h4>
+<div class="flex items-center gap-2 text-on-surface-variant text-sm">
+<span class="material-symbols-outlined text-sm" data-icon="child_care">child_care</span>
+<span>Tamizaje visual pediátrico</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Asymmetric Stats/Info Section -->
+<section class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2 glass-card p-6 rounded-2xl flex items-center gap-6 overflow-hidden">
+<div class="flex-1">
+<h3 class="headline font-bold text-xl mb-2">Capacidad Operativa</h3>
+<p class="text-on-surface-variant text-sm mb-4">La clínica está operando al 85% de su capacidad hoy.</p>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-primary to-primary-container w-[85%]"></div>
+</div>
+</div>
+<div class="hidden sm:block w-32 h-32 relative">
+<img alt="Clinical environment" class="w-full h-full object-cover rounded-xl" data-alt="Close-up of high-tech optometry diagnostic equipment in a clean, brightly lit modern clinic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATLrAPvYMUWcqP5drpwGzMtydoX1Ba9mtift-wEqq5zRcUqPg1jDuAGDh7J8nfn8T-OgB7gUusCKOz7PMRPlEthBibK2V31-KpupuKwGEPv5bMoL_8pUDW1KUVuQ3yJJIHQRYsW29t0zEVbeCg4oP6pM-CMjPm3OHe2ebc5IfKgM1RYVfLwo3uk2bhXMZxe15J2Q0WostEFyPnFjuILr34j7mU3Ak426AGMaZCMd8nB_SINhqyJMNwwnL_uYC8KRo2ZizE0TJfJ488"/>
+</div>
+</div>
+<div class="glass-card p-6 rounded-2xl flex flex-col justify-center items-center text-center bg-gradient-to-br from-[#00658d]/5 to-[#00aeef]/5 border-none">
+<span class="material-symbols-outlined text-4xl text-primary mb-2" data-icon="pending_actions">pending_actions</span>
+<div class="text-3xl font-black headline text-primary">2</div>
+<div class="text-xs font-bold uppercase text-on-surface-variant tracking-tighter">Urgencias Pendientes</div>
+</div>
+</section>
+
+        </main>
+    </div>
+</body>
+</html>

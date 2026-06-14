@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Lentes | Historias-clinicas</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script src="js/tailwind-config.js"></script>
+    <link href="css/style.css" rel="stylesheet">
+    <script src="js/app.js"></script>
+
+</head>
+<body class="bg-surface font-body text-on-surface">
+    <div id="root">
+        
+    <!-- Sidebar Overlay (Mobile) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- SideNavBar -->
+    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-slate-50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col py-6 sidebar-transition lg:translate-x-0 -translate-x-full">
+        <!-- Fixed Header in Sidebar -->
+        <div class="px-6 mb-8 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
+                    <img src="https://lh3.googleusercontent.com/aida/ADBb0ugSC5blHPIwgGwZjPWIWYKN0Xh3oRWm2HMrIOYbyO1ELYOAOHSJKK3nIr1RfrcJdvnU2aZ66brRxABuKt3KJ0vbUPkKtJV8MGGUEypFiYKplf7bwqcnoiNYbqnr88gS5DCk4Awi-f5BR2mO1YpG93VlAgXnrUiCPfBhSNdrxCnnVelEjghrQyvxKguJpm6GQPjtPYQaRgXHAB4etIBqs5pRdbFBp8ae201C2njkXv_gEG1RrUVnuL_yG6X_H2__k-NSZjsbC21cSA" alt="Dr. Lentes Ópticas" class="w-full h-full object-cover">
+                </div>
+                <div class="logo-text overflow-hidden whitespace-nowrap">
+                    <h1 class="text-xl font-bold bg-gradient-to-br from-sky-700 to-sky-400 bg-clip-text text-transparent font-headline leading-none">Dr. Lentes</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Ópticas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Navigation -->
+        <nav class="flex-1 space-y-1 px-4 overflow-y-auto">
+            <a href="dashboard.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
+                <span class="nav-label whitespace-nowrap">Tablero</span>
+            </a>
+            <a href="ventas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="payments">payments</span>
+                <span class="nav-label whitespace-nowrap">Ventas</span>
+            </a>
+            <a href="inventario.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="inventory_2">inventory_2</span>
+                <span class="nav-label whitespace-nowrap">Inventario</span>
+            </a>
+            <a href="historias-clinicas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="clinical_notes">clinical_notes</span>
+                <span class="nav-label whitespace-nowrap">Historias Clínicas</span>
+            </a>
+            <a href="citas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
+                <span class="nav-label whitespace-nowrap">Citas</span>
+            </a>
+        </nav>
+
+        <!-- Footer actions in Sidebar -->
+        <div class="px-4 mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 space-y-1">
+            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
+                <span class="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
+                <span class="nav-label whitespace-nowrap">Configuración</span>
+            </a>
+            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
+                <span class="material-symbols-outlined shrink-0" data-icon="logout">logout</span>
+                <span class="nav-label whitespace-nowrap">Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+        
+    <!-- TopNavBar -->
+    <header id="header" class="fixed top-0 right-0 h-16 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
+        <div class="flex items-center gap-4 w-full sm:w-auto flex-1">
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 lg:hidden">
+                <span class="material-symbols-outlined" data-icon="menu">menu</span>
+            </button>
+            <div class="relative flex-1 max-w-md hidden sm:block">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" data-icon="search">search</span>
+                <input type="text" placeholder="Buscar pacientes, registros o inventario..." class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none">
+            </div>
+            <!-- Mobile search button -->
+            <button class="sm:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 ml-auto">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4">
+                <button class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors relative hidden sm:block" title="Notificaciones">
+                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+            <div class="h-8 w-[1px] bg-slate-100 hidden sm:block"></div>
+            <div class="flex items-center gap-3 cursor-pointer group">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-on-surface leading-none group-hover:text-primary transition-colors">Dr. Roberto Smith</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Optometrista</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0">R</div>
+            </div>
+        </div>
+    </header>
+
+        <main id="main-content" class="pt-16 min-h-screen pb-20 sidebar-transition lg:ml-64 ml-0 overflow-x-hidden">
+            
+<!-- Patient Quick Info Bento Header -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+<div class="md:col-span-2 glass-card rounded-xl p-8 flex flex-col justify-between surface-container-lowest border border-white/20">
+<div>
+<h2 class="font-headline text-3xl font-extrabold text-primary mb-1">Juan Pérez</h2>
+<div class="flex gap-4 items-center">
+<span class="bg-secondary-container text-on-secondary-container text-xs font-bold px-3 py-1 rounded-full uppercase">Activo</span>
+<span class="text-outline text-sm">45 Años • Masculino</span>
+</div>
+</div>
+<div class="mt-6 flex gap-8">
+<div>
+<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Última Cita</p>
+<p class="text-on-surface font-semibold">12 de Octubre, 2023</p>
+</div>
+<div>
+<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Próxima Cita</p>
+<p class="text-on-surface font-semibold">15 de Abril, 2024</p>
+</div>
+</div>
+</div>
+<div class="glass-card rounded-xl p-6 surface-container-lowest border border-white/20 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-primary text-4xl mb-2" style="font-variation-settings: 'FILL' 1;">visibility</span>
+<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Agudeza Visual</p>
+<p class="text-2xl font-black text-on-surface">20/20 <span class="text-xs font-normal text-outline">(OD)</span></p>
+</div>
+<div class="glass-card rounded-xl p-6 surface-container-lowest border border-white/20 flex flex-col items-center justify-center text-center">
+<span class="material-symbols-outlined text-tertiary-container text-4xl mb-2" style="font-variation-settings: 'FILL' 1;">pending_actions</span>
+<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Pendientes</p>
+<p class="text-2xl font-black text-on-surface">02 <span class="text-xs font-normal text-outline">Estudios</span></p>
+</div>
+</div>
+<!-- Dashboard Content Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: Tabs & Clinical Data -->
+<div class="lg:col-span-2 space-y-10">
+<!-- Prescription Section -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<h3 class="font-headline text-xl font-bold text-on-surface">Graduación Actual</h3>
+<button class="flex items-center gap-2 text-primary text-sm font-semibold hover:underline">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+                                Clonar Receta Anterior
+                            </button>
+</div>
+<div class="bg-surface-container-low rounded-xl p-1 overflow-x-auto">
+<table class="w-full text-left border-separate border-spacing-2 min-w-[500px]">
+<thead>
+<tr class="text-[10px] text-outline uppercase font-bold">
+<th class="p-3">Ojo</th>
+<th class="p-3">Esfera</th>
+<th class="p-3">Cilindro</th>
+<th class="p-3">Eje</th>
+<th class="p-3">AV</th>
+</tr>
+</thead>
+<tbody>
+<tr class="glass-card rounded-lg overflow-hidden">
+<td class="p-4 font-bold text-primary">Derecho (OD)</td>
+<td class="p-4 font-mono text-on-surface">-2.50</td>
+<td class="p-4 font-mono text-on-surface">-0.75</td>
+<td class="p-4 font-mono text-on-surface">165°</td>
+<td class="p-4 font-mono text-on-surface">20/20</td>
+</tr>
+<tr class="glass-card rounded-lg overflow-hidden">
+<td class="p-4 font-bold text-primary">Izquierdo (OI)</td>
+<td class="p-4 font-mono text-on-surface">-2.25</td>
+<td class="p-4 font-mono text-on-surface">-1.00</td>
+<td class="p-4 font-mono text-on-surface">10°</td>
+<td class="p-4 font-mono text-on-surface">20/25</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- Evolution Chart Simulation -->
+<section>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-6">Evolución de Miopía</h3>
+<div class="glass-card rounded-xl p-8 surface-container-lowest border border-white/20 h-64 relative flex items-end justify-between">
+<!-- Visual Chart Mockup -->
+<div class="absolute inset-x-8 bottom-8 top-16 flex items-end gap-1">
+<div class="w-full bg-primary/10 rounded-t-lg relative group transition-all" style="height: 40%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">2021</div>
+</div>
+<div class="w-full bg-primary/20 rounded-t-lg relative group transition-all" style="height: 55%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">2022</div>
+</div>
+<div class="w-full bg-primary/40 rounded-t-lg relative group transition-all" style="height: 70%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">2023</div>
+</div>
+<div class="w-full primary-gradient rounded-t-lg relative group transition-all" style="height: 85%;">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">Actual</div>
+</div>
+</div>
+<div class="absolute inset-x-8 top-8 flex justify-between text-[10px] text-outline font-bold uppercase">
+<span>-1.00 Dioptrías</span>
+<span>-3.00 Dioptrías</span>
+</div>
+</div>
+</section>
+<!-- Files Section -->
+<section>
+<h3 class="font-headline text-xl font-bold text-on-surface mb-6">Archivos &amp; Exámenes</h3>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+<div class="group relative rounded-xl overflow-hidden aspect-square cursor-pointer">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-110" data-alt="high resolution fundus photograph showing detailed view of the retina and optic nerve head in clinical setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWm7fAHWrH1dS25Gy4FQILoJb2vwbmzgJTN0FurNKexfaXUmeKbYiT4sXxmJTG1lnoNBcY1rxbJBOWbyjZUVr6H4N6sb4qzafFYyc4RJh0xkErPGGlPszTSGqdIMOTSPMczEyOt3vAyjk3yCTPxU7vWyUHwjUNcqhud69zChGw9muPNPMYiFd7HdsXPKmFCuZb0ilvNBevwsLlNSQu-Wc-3Rx7HG8fXq92R5F4VSZ-c20CTd13oUuK6XuKsW9XXMKE1y6r3NmTIIPs"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="text-white font-bold text-xs">Fondo de Ojo - Oct 23</span>
+</div>
+</div>
+<div class="group relative rounded-xl overflow-hidden aspect-square cursor-pointer">
+<img class="w-full h-full object-cover transition-transform group-hover:scale-110" data-alt="optical coherence tomography scan of a human eye displaying colored cross-section of retinal layers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhchdpfMc3N7VeAks4LG_iPRiV9J-5B-sordYShAbyo0zA3wzSN-uJUekfr0nIxjKGqrSHnYcaAcJzH2HqQeX7zfBO0H7PlE9wT9b1nlFKx-rAx1Csojnh15pTEOrn3zvlXE7DtCTLxGZm8vEN_I9St5CD_tDGxnUebySCdiil3YUtRCzrmmR48Y4qU03sC2rO0BOWCY8W-Fk5gJ_FdReaxDCKzIIiLJsa90paDdT5AJrZJ9D3uJIxB574i9gVcv1l99etIl5Bcia-"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="text-white font-bold text-xs">OCT Macular - May 23</span>
+</div>
+</div>
+<div class="border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center text-outline hover:bg-surface-container transition-colors cursor-pointer aspect-square">
+<span class="material-symbols-outlined text-4xl mb-2">add_a_photo</span>
+<span class="text-xs font-bold uppercase tracking-widest">Subir Archivo</span>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Personal Data & Purchase History -->
+<div class="space-y-10">
+<!-- Personal Info Card -->
+<section class="glass-card rounded-xl p-8 surface-container-lowest border border-white/20">
+<h3 class="font-headline text-lg font-bold text-on-surface mb-6">Ficha del Paciente</h3>
+<div class="space-y-4">
+<div>
+<label class="text-[10px] text-outline uppercase font-bold block mb-1">Teléfono</label>
+<p class="text-on-surface font-medium">+54 9 11 5555-1234</p>
+</div>
+<div>
+<label class="text-[10px] text-outline uppercase font-bold block mb-1">Correo Electrónico</label>
+<p class="text-on-surface font-medium">juan.perez@email.com</p>
+</div>
+<div class="h-px bg-surface-container-high w-full my-4"></div>
+<div>
+<label class="text-[10px] text-outline uppercase font-bold block mb-1">Antecedentes</label>
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold px-3 py-1 rounded-full">Diabetes Tipo II</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold px-3 py-1 rounded-full">Glaucoma Familiar</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Purchase History -->
+<section>
+<h3 class="font-headline text-lg font-bold text-on-surface mb-6">Historial de Compras</h3>
+<div class="space-y-4">
+<!-- Purchase Item -->
+<div class="glass-card rounded-xl p-4 surface-container-lowest border border-white/20 flex gap-4 items-center">
+<div class="w-12 h-12 bg-sky-50 rounded-lg flex items-center justify-center text-sky-600">
+<span class="material-symbols-outlined">eyeglasses</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">Ray-Ban Wayfarer Classic</p>
+<p class="text-[10px] text-outline">Comprado: 15 Ago, 2023</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-black text-primary">$18.500</p>
+<span class="text-[8px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase">Entregado</span>
+</div>
+</div>
+<!-- Purchase Item -->
+<div class="glass-card rounded-xl p-4 surface-container-lowest border border-white/20 flex gap-4 items-center">
+<div class="w-12 h-12 bg-sky-50 rounded-lg flex items-center justify-center text-sky-600">
+<span class="material-symbols-outlined">contacts_product</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">Acuvue Oasys (Pack 6)</p>
+<p class="text-[10px] text-outline">Comprado: 02 May, 2023</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-black text-primary">$9.200</p>
+<span class="text-[8px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase">Entregado</span>
+</div>
+</div>
+<button class="w-full py-3 text-sm font-bold text-primary border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">
+                                Ver Todo el Historial
+                            </button>
+</div>
+</section>
+</div>
+</div>
+<!-- Vertical Spacing -->
+<div class="h-20"></div>
+
+        </main>
+    </div>
+</body>
+</html>

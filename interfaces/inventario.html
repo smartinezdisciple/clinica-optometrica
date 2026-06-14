@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Lentes | Inventario</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script src="js/tailwind-config.js"></script>
+    <link href="css/style.css" rel="stylesheet">
+    <script src="js/app.js"></script>
+
+</head>
+<body class="bg-surface font-body text-on-surface">
+    <div id="root">
+        
+    <!-- Sidebar Overlay (Mobile) -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- SideNavBar -->
+    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-slate-50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col py-6 sidebar-transition lg:translate-x-0 -translate-x-full">
+        <!-- Fixed Header in Sidebar -->
+        <div class="px-6 mb-8 shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
+                    <img src="https://lh3.googleusercontent.com/aida/ADBb0ugSC5blHPIwgGwZjPWIWYKN0Xh3oRWm2HMrIOYbyO1ELYOAOHSJKK3nIr1RfrcJdvnU2aZ66brRxABuKt3KJ0vbUPkKtJV8MGGUEypFiYKplf7bwqcnoiNYbqnr88gS5DCk4Awi-f5BR2mO1YpG93VlAgXnrUiCPfBhSNdrxCnnVelEjghrQyvxKguJpm6GQPjtPYQaRgXHAB4etIBqs5pRdbFBp8ae201C2njkXv_gEG1RrUVnuL_yG6X_H2__k-NSZjsbC21cSA" alt="Dr. Lentes Ópticas" class="w-full h-full object-cover">
+                </div>
+                <div class="logo-text overflow-hidden whitespace-nowrap">
+                    <h1 class="text-xl font-bold bg-gradient-to-br from-sky-700 to-sky-400 bg-clip-text text-transparent font-headline leading-none">Dr. Lentes</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Ópticas</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scrollable Navigation -->
+        <nav class="flex-1 space-y-1 px-4 overflow-y-auto">
+            <a href="dashboard.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
+                <span class="nav-label whitespace-nowrap">Tablero</span>
+            </a>
+            <a href="ventas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="payments">payments</span>
+                <span class="nav-label whitespace-nowrap">Ventas</span>
+            </a>
+            <a href="inventario.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="inventory_2">inventory_2</span>
+                <span class="nav-label whitespace-nowrap">Inventario</span>
+            </a>
+            <a href="historias-clinicas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="clinical_notes">clinical_notes</span>
+                <span class="nav-label whitespace-nowrap">Historias Clínicas</span>
+            </a>
+            <a href="citas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
+                <span class="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
+                <span class="nav-label whitespace-nowrap">Citas</span>
+            </a>
+        </nav>
+
+        <!-- Footer actions in Sidebar -->
+        <div class="px-4 mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 space-y-1">
+            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
+                <span class="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
+                <span class="nav-label whitespace-nowrap">Configuración</span>
+            </a>
+            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
+                <span class="material-symbols-outlined shrink-0" data-icon="logout">logout</span>
+                <span class="nav-label whitespace-nowrap">Cerrar Sesión</span>
+            </a>
+        </div>
+    </aside>
+
+        
+    <!-- TopNavBar -->
+    <header id="header" class="fixed top-0 right-0 h-16 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
+        <div class="flex items-center gap-4 w-full sm:w-auto flex-1">
+            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 lg:hidden">
+                <span class="material-symbols-outlined" data-icon="menu">menu</span>
+            </button>
+            <div class="relative flex-1 max-w-md hidden sm:block">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" data-icon="search">search</span>
+                <input type="text" placeholder="Buscar pacientes, registros o inventario..." class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none">
+            </div>
+            <!-- Mobile search button -->
+            <button class="sm:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 ml-auto">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-4">
+                <button class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors relative hidden sm:block" title="Notificaciones">
+                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+                </button>
+            </div>
+            <div class="h-8 w-[1px] bg-slate-100 hidden sm:block"></div>
+            <div class="flex items-center gap-3 cursor-pointer group">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-on-surface leading-none group-hover:text-primary transition-colors">Dr. Roberto Smith</p>
+                    <p class="text-[10px] text-slate-400 font-medium">Optometrista</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0">R</div>
+            </div>
+        </div>
+    </header>
+
+        <main id="main-content" class="pt-16 min-h-screen pb-20 sidebar-transition lg:ml-64 ml-0">
+            <div class="p-4 md:p-6 lg:p-8 space-y-8">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                        <h1 class="font-headline font-bold text-3xl tracking-tight text-primary">Inventario y Catálogo</h1>
+                        <p class="text-on-surface-variant mt-1 text-sm">Gestiona tus productos, actualiza existencias o agrégalos directamente a ventas.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="bg-surface-container-high text-on-surface px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+                            <span class="material-symbols-outlined text-lg">filter_alt</span> Filtros
+                        </button>
+                        <button class="bg-gradient-to-br from-primary to-primary-container text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all">
+                            <span class="material-symbols-outlined text-lg">add</span> Nuevo Producto
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pb-4 overflow-x-auto custom-scrollbar">
+                    <button class="px-5 py-2 rounded-xl bg-primary text-white text-sm font-bold shadow-sm whitespace-nowrap">Todos</button>
+                    <button class="px-5 py-2 rounded-xl text-sm font-semibold text-outline-variant hover:bg-surface-container-lowest transition-colors whitespace-nowrap">Armazones</button>
+                    <button class="px-5 py-2 rounded-xl text-sm font-semibold text-outline-variant hover:bg-surface-container-lowest transition-colors whitespace-nowrap">Lentes de Contacto</button>
+                    <button class="px-5 py-2 rounded-xl text-sm font-semibold text-outline-variant hover:bg-surface-container-lowest transition-colors whitespace-nowrap">Soluciones y Accesorios</button>
+                </div>
+
+                <!-- Bento-style Catalog Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Product Card 1 -->
+                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
+                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
+                            <img alt="Armazón Moderno" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9EJ6CIv6O-1pYwyNL45m3vlEFkrE5yfboueKYJNZFad1dWu3Qs0FUhYsg4bXg3liDN1x5_Q9xbU0275_H4T0ExRN4GYZNMexaEEuF1pbncDKVkxN49If6mvsQNvF6aLsK4Pm_TsmU5qnKrbUL-8GHoqtFhphIKmAOViQn3IBW9v4kfmZWjmdVm1jDHamNfK_660FBYvVdDIiMalJOMWs20PrbqFUM-xl0sbU2PM9Kjozzxr-Rjf2RSq61YRdxYgTDy3mIH-QIuyb8"/>
+                            <div class="absolute top-3 right-3 px-2 py-1 bg-white/90 backdrop-blur rounded-lg text-[10px] font-bold text-primary shadow-sm">NUEVO</div>
+                        </div>
+                        <div class="flex flex-col flex-1">
+                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Ray-Ban</span>
+                            <h3 class="font-semibold text-on-surface text-base leading-tight">Wayfarer Classic Noir</h3>
+                            <div class="flex justify-between items-end mt-3">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
+                                    <span class="text-primary font-black text-lg leading-none">$3,450.00</span>
+                                </div>
+                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">Stock: 12</span>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
+                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Product Card 2 -->
+                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
+                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
+                            <img alt="Lentes Minimalistas" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBi4k8EpekcMjLpDB574edV1iBpGWNHJkKkxwKX6pdL97BPL9x2XCyNF8u5r8NBOPSXCSrbX9nZugijA6iK9UOfw0qstxEE_SLnr9L00faVpWI_BWQh7_9uEgJlCNFcXovXGAqbl373QcDRWYiYLLGMzs1OHakH-KhHK_KGytee0E1xySSDMu4IKy3TZMRdFZ8d426VHW7lWxO049aFxfiKcsn4Ng7GSpC-x7AcrCgS80tSKapXuOW1AaI1t0NDe9iyiH4mrlOeStl1"/>
+                        </div>
+                        <div class="flex flex-col flex-1">
+                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Oakley</span>
+                            <h3 class="font-semibold text-on-surface text-base leading-tight">Titanium Slim Fit</h3>
+                            <div class="flex justify-between items-end mt-3">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
+                                    <span class="text-primary font-black text-lg leading-none">$4,100.00</span>
+                                </div>
+                                <span class="text-[11px] font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-100">Stock: 5</span>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
+                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Product Card 3 -->
+                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
+                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
+                            <img alt="Lentes de contacto" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbSM3G3GcFTLtKPoiAjQAvu4wXDogwjog9Up8J_VdPmGnyS-IM3yCZp_Ie85f_KiNE391WCT8XWL3KDBOBh7Fv2DR1b96emAn2EgOX3Fle2Yqe-qh3G-vE9T0DsgzauDwDlosXOQ48a_OqdAKkdHqMc2MZL3DBGJ2SF1HkMh8d2VJyqRraliTnWynx4yrz0ATKzya84MBPHuo2XBd4yBWbVNl4Ah4c956Fv85oXFv60HAKwmGR44dwlGP0QT3cWaOe1SSF5Ua0gqDY"/>
+                        </div>
+                        <div class="flex flex-col flex-1">
+                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Acuvue</span>
+                            <h3 class="font-semibold text-on-surface text-base leading-tight">Moist Daily (30 pcs)</h3>
+                            <div class="flex justify-between items-end mt-3">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
+                                    <span class="text-primary font-black text-lg leading-none">$890.00</span>
+                                </div>
+                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">Stock: 45</span>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
+                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Product Card 4 -->
+                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
+                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
+                            <img alt="Solución óptica" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuXEx0dqFyUiQAyt3aTQ4B-pxLE_bdyYf6hiHMT4vRLUqBB2xNiwiTPU3QTyjGkJ4thZ11qpXpwQzYQ0jgKp0O1pyqddSmD3EYjHAihXmqYf8k-k-6fuiRdKVrQq1z8M-1fLWAqImDZYOwDvXSlRnwS_PWpYHB-F2zNaLXq0IGT6Sba8ViDfryUpVxaLF83KgHiXGW0Ube7k1D2O4PPvv1ZbciVN4_qEHVkc_1w-RL_Nl9njIo1ADJLHYisnjavqoKcMfGHjqBYX7U"/>
+                        </div>
+                        <div class="flex flex-col flex-1">
+                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Opti-Free</span>
+                            <h3 class="font-semibold text-on-surface text-base leading-tight">PureMoist Solution</h3>
+                            <div class="flex justify-between items-end mt-3">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
+                                    <span class="text-primary font-black text-lg leading-none">$245.00</span>
+                                </div>
+                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">Stock: 28</span>
+                            </div>
+                        </div>
+                        <!-- Actions -->
+                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
+                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
+                                <span class="material-symbols-outlined text-sm">edit</span>
+                            </button>
+                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
