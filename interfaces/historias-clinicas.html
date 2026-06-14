@@ -3,300 +3,840 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dr. Lentes | Historias-clinicas</title>
-    
+    <meta name="description" content="Módulo de Historias Clínicas — Expediente clínico digital para Dr. Lentes Ópticas. Consultas, recetas y lensometrías.">
+    <title>Dr. Lentes | Historias Clínicas</title>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script src="js/tailwind-config.js"></script>
-    <link href="css/style.css" rel="stylesheet">
-    <script src="js/app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <script src="../js/tailwind-config.js"></script>
+    <link href="../css/style.css" rel="stylesheet">
 
+    <style>
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.6}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+
+        .fade-up  { animation:fadeUp .4s ease both; }
+        .slide-r  { animation:slideR .35s ease both; }
+        .scale-in { animation:scaleIn .28s cubic-bezier(.34,1.56,.64,1) both; }
+        .live-dot { animation:pulse-dot 2.2s infinite; }
+        .notif-dot{ animation:pulse-dot 2.2s infinite; }
+
+        .glass { background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px); }
+
+        .sidebar-link { transition:background .2s,color .2s; }
+        .sidebar-link.active { background:#fff;color:#00658d;font-weight:700;box-shadow:0 1px 4px rgba(0,101,141,.08); }
+        .sidebar-link:hover  { background:rgba(0,174,239,.06);color:#00658d; }
+
+        /* Patient card */
+        .patient-card { transition:all .2s;cursor:pointer; }
+        .patient-card:hover { box-shadow:0 4px 12px rgba(0,101,141,.1);transform:translateX(2px); }
+        .patient-card.selected { background:#e0f2fe;border-color:#0ea5e9; }
+
+        /* Timeline */
+        .timeline-item { position:relative;padding-left:2rem; }
+        .timeline-item::before {
+            content:'';position:absolute;left:.45rem;top:1.5rem;bottom:0;
+            width:1.5px;background:#e2e8f0;
+        }
+        .timeline-item:last-child::before { display:none; }
+        .timeline-dot {
+            position:absolute;left:0;top:.35rem;
+            width:.9rem;height:.9rem;border-radius:50%;border:2px solid #fff;
+            box-shadow:0 0 0 2px currentColor;
+        }
+
+        /* AV chip */
+        .av-normal  { background:#dcfce7;color:#166534; }
+        .av-reducida{ background:#fef9c3;color:#854d0e; }
+        .av-baja    { background:#fee2e2;color:#991b1b; }
+
+        /* Modal */
+        .modal-bd { background:rgba(0,0,0,.45);backdrop-filter:blur(4px); }
+
+        /* Tab */
+        .exp-tab { border-bottom:2px solid transparent;transition:all .2s; }
+        .exp-tab.active { color:#00658d;border-bottom-color:#00658d;font-weight:700; }
+
+        /* Rx grid */
+        .rx-cell { background:#f7f9fb;border:1px solid #e4e8ec;border-radius:.5rem;padding:.35rem .5rem;text-align:center;font-size:.7rem; }
+        .rx-cell.header { background:#00658d;color:#fff;font-weight:700; }
+        .rx-cell.eye    { background:#e0f2fe;color:#0369a1;font-weight:700; }
+
+        ::-webkit-scrollbar{width:5px;height:5px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#bdc8d1;border-radius:8px}
+    </style>
 </head>
+
 <body class="bg-surface font-body text-on-surface">
-    <div id="root">
-        
-    <!-- Sidebar Overlay (Mobile) -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+<div id="root">
 
-    <!-- SideNavBar -->
-    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-slate-50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col py-6 sidebar-transition lg:translate-x-0 -translate-x-full">
-        <!-- Fixed Header in Sidebar -->
-        <div class="px-6 mb-8 shrink-0">
+<div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-surface-container flex flex-col py-5 sidebar-transition lg:translate-x-0 -translate-x-full">
+    <div class="px-5 mb-7 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings:'FILL' 1">visibility</span>
+            </div>
+            <div class="logo-text overflow-hidden">
+                <p class="text-base font-extrabold font-headline bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent leading-none">Dr. Lentes</p>
+                <p class="text-[9px] uppercase tracking-[.18em] text-outline font-semibold mt-0.5">Ópticas Clínicas</p>
+            </div>
+        </div>
+    </div>
+    <nav class="flex-1 px-3 space-y-0.5 overflow-y-auto" id="sidebar-nav">
+        <a href="dashboard.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">dashboard</span><span class="nav-label">Tablero</span>
+        </a>
+        <a href="ventas.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">point_of_sale</span><span class="nav-label">Ventas</span>
+        </a>
+        <a href="inventario.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">inventory_2</span><span class="nav-label">Inventario</span>
+        </a>
+        <a href="historias-clinicas.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]" style="font-variation-settings:'FILL' 1">clinical_notes</span><span class="nav-label">Historias Clínicas</span>
+        </a>
+        <a href="citas.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">calendar_month</span><span class="nav-label">Citas</span>
+        </a>
+        <div class="my-3 h-px bg-surface-container mx-1"></div>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">bar_chart</span><span class="nav-label">Reportes</span>
+        </a>
+    </nav>
+    <div class="px-3 pt-4 border-t border-surface-container space-y-0.5 shrink-0">
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">settings</span><span class="nav-label">Configuración</span>
+        </a>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 hover:text-red-500">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">logout</span><span class="nav-label">Cerrar Sesión</span>
+        </a>
+    </div>
+</aside>
+
+<!-- TOP NAV -->
+<header id="header" class="fixed top-0 right-0 h-14 z-40 glass border-b border-surface-container flex items-center justify-between px-5 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
+    <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant lg:hidden">
+            <span class="material-symbols-outlined text-[22px]">menu</span>
+        </button>
+        <div class="hidden sm:flex items-center gap-2 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-base text-primary" style="font-variation-settings:'FILL' 1">home</span>
+            <span class="text-outline">/</span>
+            <span class="font-semibold text-on-surface">Historias Clínicas</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <button onclick="openNewConsultModal()" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all">
+            <span class="material-symbols-outlined text-base">add</span>
+            Nueva Consulta
+        </button>
+        <button class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant relative">
+            <span class="material-symbols-outlined text-[22px]">notifications</span>
+            <span class="notif-dot absolute top-1 right-1 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+        </button>
+        <div class="h-7 w-px bg-surface-container hidden sm:block"></div>
+        <button class="flex items-center gap-2.5 hover:bg-surface-container px-2 py-1.5 rounded-xl transition-colors group">
+            <div class="text-right hidden sm:block">
+                <p class="text-xs font-bold text-on-surface leading-none group-hover:text-primary">Dr. Roberto Smith</p>
+                <p class="text-[10px] text-outline font-medium mt-0.5">Optometrista</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white font-bold text-sm shrink-0">R</div>
+        </button>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main id="main-content" class="pt-14 min-h-screen sidebar-transition lg:ml-64 ml-0 bg-surface overflow-x-hidden">
+
+    <!-- Page header -->
+    <div class="border-b border-surface-container bg-white px-5 md:px-8 py-4 fade-up">
+        <h1 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Expedientes Clínicos</h1>
+        <p class="text-xs text-outline mt-0.5">Historial visual, consultas, lensometrías y recetas de pacientes</p>
+    </div>
+
+    <div class="flex h-[calc(100vh-7rem)] overflow-hidden">
+
+        <!-- ════ LEFT PANEL: Patient List ════ -->
+        <aside class="w-72 shrink-0 border-r border-surface-container bg-white flex flex-col">
+            <!-- Search -->
+            <div class="p-3 border-b border-surface-container">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
+                    <input id="patient-search" type="text" placeholder="Buscar paciente…"
+                           class="w-full bg-surface-container-low border-none rounded-xl py-2 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+                           oninput="filterPatients(this.value)">
+                </div>
+            </div>
+            <!-- Patient count -->
+            <div class="px-3 py-2 flex items-center justify-between">
+                <p class="text-[10px] font-bold text-outline uppercase tracking-wider" id="patient-count-label">5 pacientes</p>
+                <button class="text-[10px] text-primary font-bold hover:underline">+ Nuevo</button>
+            </div>
+            <!-- Patient list -->
+            <div class="flex-1 overflow-y-auto px-2 pb-3 space-y-1" id="patient-list">
+                <!-- Rendered by JS -->
+            </div>
+        </aside>
+
+        <!-- ════ RIGHT PANEL: Patient Expediente ════ -->
+        <section class="flex-1 overflow-y-auto bg-surface" id="expediente-panel">
+
+            <!-- Empty state -->
+            <div id="exp-empty" class="h-full flex flex-col items-center justify-center text-outline">
+                <div class="w-20 h-20 rounded-2xl bg-surface-container flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-4xl text-primary/30" style="font-variation-settings:'FILL' 1">clinical_notes</span>
+                </div>
+                <p class="text-sm font-semibold text-on-surface-variant">Selecciona un paciente</p>
+                <p class="text-xs mt-1">para ver su expediente clínico completo</p>
+            </div>
+
+            <!-- Expediente content -->
+            <div id="exp-content" class="hidden p-5 md:p-6 space-y-5 slide-r">
+
+                <!-- Patient Profile Card -->
+                <div class="bg-white rounded-2xl border border-surface-container shadow-sm overflow-hidden">
+                    <div class="bg-gradient-to-r from-primary/5 to-primary-container/5 px-5 py-4 border-b border-surface-container flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white font-extrabold text-xl font-headline shrink-0" id="patient-avatar">M</div>
+                            <div>
+                                <h2 class="font-headline font-extrabold text-lg text-on-surface" id="patient-name">—</h2>
+                                <p class="text-xs text-outline mt-0.5" id="patient-meta">—</p>
+                                <div class="flex gap-2 mt-1.5 flex-wrap">
+                                    <span id="patient-age-chip" class="text-[10px] bg-surface-container text-on-surface-variant px-2 py-0.5 rounded-full font-semibold">—</span>
+                                    <span id="patient-blood-chip" class="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold">—</span>
+                                    <span id="patient-av-chip" class="text-[10px] px-2 py-0.5 rounded-full font-bold">—</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <button onclick="printExpediente()" class="p-2 hover:bg-surface-container rounded-xl transition-all text-on-surface-variant" title="Imprimir expediente">
+                                <span class="material-symbols-outlined text-base">print</span>
+                            </button>
+                            <button onclick="openNewConsultModal()" class="flex items-center gap-1.5 bg-gradient-to-r from-primary to-primary-container text-white px-3 py-2 rounded-xl text-xs font-bold shadow hover:shadow-md transition-all">
+                                <span class="material-symbols-outlined text-base">add</span>
+                                Nueva Consulta
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Patient details grid -->
+                    <div class="px-5 py-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div><p class="text-[10px] text-outline font-medium uppercase">Cédula</p><p class="font-semibold text-on-surface mt-0.5" id="p-cedula">—</p></div>
+                        <div><p class="text-[10px] text-outline font-medium uppercase">Teléfono</p><p class="font-semibold text-on-surface mt-0.5" id="p-phone">—</p></div>
+                        <div><p class="text-[10px] text-outline font-medium uppercase">Email</p><p class="font-semibold text-on-surface mt-0.5 truncate" id="p-email">—</p></div>
+                        <div><p class="text-[10px] text-outline font-medium uppercase">Próx. Revisión</p><p class="font-semibold text-primary mt-0.5" id="p-next">—</p></div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex gap-1 border-b border-surface-container">
+                    <button class="exp-tab active px-4 py-2.5 text-sm text-on-surface-variant" onclick="switchExpTab('timeline',this)">
+                        <span class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">timeline</span> Consultas
+                        </span>
+                    </button>
+                    <button class="exp-tab px-4 py-2.5 text-sm text-on-surface-variant" onclick="switchExpTab('receta',this)">
+                        <span class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">receipt</span> Última Receta
+                        </span>
+                    </button>
+                    <button class="exp-tab px-4 py-2.5 text-sm text-on-surface-variant" onclick="switchExpTab('lensometria',this)">
+                        <span class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">lens_blur</span> Lensometría
+                        </span>
+                    </button>
+                    <button class="exp-tab px-4 py-2.5 text-sm text-on-surface-variant" onclick="switchExpTab('antecedentes',this)">
+                        <span class="flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">history_edu</span> Antecedentes
+                        </span>
+                    </button>
+                </div>
+
+                <!-- TAB: Timeline of Consultations -->
+                <div id="tab-timeline" class="space-y-1">
+                    <div id="timeline-container" class="space-y-0">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- TAB: Last Prescription -->
+                <div id="tab-receta" class="hidden bg-white rounded-2xl border border-surface-container p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-headline font-bold text-base text-on-surface">Receta Óptica</h3>
+                            <p class="text-xs text-outline mt-0.5" id="receta-date">—</p>
+                        </div>
+                        <button onclick="window.print()" class="flex items-center gap-1.5 px-3 py-2 bg-surface-container text-on-surface text-xs font-bold rounded-xl hover:bg-surface-dim transition-all">
+                            <span class="material-symbols-outlined text-base">print</span> Imprimir
+                        </button>
+                    </div>
+
+                    <!-- Rx table -->
+                    <div class="overflow-x-auto">
+                        <div class="grid grid-cols-6 gap-1 min-w-[420px]" id="rx-grid">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+
+                    <!-- AV + DP -->
+                    <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center" id="rx-extra">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mt-4 bg-surface-container-low rounded-xl p-3" id="rx-notes-block">
+                        <p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1">Indicaciones</p>
+                        <p class="text-sm text-on-surface-variant" id="rx-notes">—</p>
+                    </div>
+                </div>
+
+                <!-- TAB: Lensometry -->
+                <div id="tab-lensometria" class="hidden bg-white rounded-2xl border border-surface-container p-5 space-y-4">
+                    <h3 class="font-headline font-bold text-base text-on-surface">Lensometría Clínica</h3>
+                    <div class="overflow-x-auto">
+                        <div class="grid grid-cols-6 gap-1 min-w-[420px]" id="lens-grid">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                    <p class="text-xs text-outline">Medición de la graduación actual del lente del paciente antes de la consulta.</p>
+                </div>
+
+                <!-- TAB: Antecedentes -->
+                <div id="tab-antecedentes" class="hidden bg-white rounded-2xl border border-surface-container p-5 space-y-4">
+                    <h3 class="font-headline font-bold text-base text-on-surface">Antecedentes Clínicos</h3>
+                    <div id="antecedentes-content" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- MODAL: Nueva Consulta -->
+<div id="modal-consult" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-bd absolute inset-0" onclick="closeNewConsultModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl scale-in overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div class="p-5 border-b border-surface-container flex items-center justify-between sticky top-0 bg-white z-10">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
-                    <img src="https://lh3.googleusercontent.com/aida/ADBb0ugSC5blHPIwgGwZjPWIWYKN0Xh3oRWm2HMrIOYbyO1ELYOAOHSJKK3nIr1RfrcJdvnU2aZ66brRxABuKt3KJ0vbUPkKtJV8MGGUEypFiYKplf7bwqcnoiNYbqnr88gS5DCk4Awi-f5BR2mO1YpG93VlAgXnrUiCPfBhSNdrxCnnVelEjghrQyvxKguJpm6GQPjtPYQaRgXHAB4etIBqs5pRdbFBp8ae201C2njkXv_gEG1RrUVnuL_yG6X_H2__k-NSZjsbC21cSA" alt="Dr. Lentes Ópticas" class="w-full h-full object-cover">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-base" style="font-variation-settings:'FILL' 1">clinical_notes</span>
                 </div>
-                <div class="logo-text overflow-hidden whitespace-nowrap">
-                    <h1 class="text-xl font-bold bg-gradient-to-br from-sky-700 to-sky-400 bg-clip-text text-transparent font-headline leading-none">Dr. Lentes</h1>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Ópticas</p>
-                </div>
+                <h2 class="font-headline font-extrabold text-base text-on-surface">Nueva Consulta Clínica</h2>
             </div>
-        </div>
-
-        <!-- Scrollable Navigation -->
-        <nav class="flex-1 space-y-1 px-4 overflow-y-auto">
-            <a href="dashboard.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
-                <span class="nav-label whitespace-nowrap">Tablero</span>
-            </a>
-            <a href="ventas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="payments">payments</span>
-                <span class="nav-label whitespace-nowrap">Ventas</span>
-            </a>
-            <a href="inventario.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="inventory_2">inventory_2</span>
-                <span class="nav-label whitespace-nowrap">Inventario</span>
-            </a>
-            <a href="historias-clinicas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="clinical_notes">clinical_notes</span>
-                <span class="nav-label whitespace-nowrap">Historias Clínicas</span>
-            </a>
-            <a href="citas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
-                <span class="nav-label whitespace-nowrap">Citas</span>
-            </a>
-        </nav>
-
-        <!-- Footer actions in Sidebar -->
-        <div class="px-4 mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 space-y-1">
-            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
-                <span class="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
-                <span class="nav-label whitespace-nowrap">Configuración</span>
-            </a>
-            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
-                <span class="material-symbols-outlined shrink-0" data-icon="logout">logout</span>
-                <span class="nav-label whitespace-nowrap">Cerrar Sesión</span>
-            </a>
-        </div>
-    </aside>
-
-        
-    <!-- TopNavBar -->
-    <header id="header" class="fixed top-0 right-0 h-16 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
-        <div class="flex items-center gap-4 w-full sm:w-auto flex-1">
-            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 lg:hidden">
-                <span class="material-symbols-outlined" data-icon="menu">menu</span>
-            </button>
-            <div class="relative flex-1 max-w-md hidden sm:block">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" data-icon="search">search</span>
-                <input type="text" placeholder="Buscar pacientes, registros o inventario..." class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none">
-            </div>
-            <!-- Mobile search button -->
-            <button class="sm:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 ml-auto">
-                <span class="material-symbols-outlined">search</span>
+            <button onclick="closeNewConsultModal()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-4">
-                <button class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors relative hidden sm:block" title="Notificaciones">
-                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-                    <span class="absolute top-0 right-0 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+
+        <div class="p-5 space-y-5">
+
+            <!-- Patient + Doctor + Date -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2 md:col-span-1">
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Paciente</label>
+                    <select id="c-patient" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+                        <option value="">— Seleccionar —</option>
+                        <option value="1">Carlos R. Mendoza</option>
+                        <option value="2">María Fernanda Ruiz</option>
+                        <option value="3">Lucía Gómez</option>
+                        <option value="4">José Alberto Torres</option>
+                        <option value="5">Ana María Castillo</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Optometrista</label>
+                    <select id="c-doctor" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+                        <option>Dr. Roberto Smith</option>
+                        <option>Dra. Ana Castillo</option>
+                        <option>Dr. Miguel Torres</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Fecha</label>
+                    <input type="date" id="c-date" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Motivo de Consulta</label>
+                    <input type="text" id="c-reason" placeholder="Ej: Control anual, baja visión…" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30">
+                </div>
+            </div>
+
+            <!-- AV Section -->
+            <div>
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Agudeza Visual (AV)</p>
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="bg-surface-container-low rounded-xl p-2 text-center">
+                        <p class="text-[10px] font-bold text-outline mb-1">OD s/c</p>
+                        <input id="av-od-sc" type="text" placeholder="20/20" class="w-full bg-transparent text-center text-sm font-bold outline-none text-primary">
+                    </div>
+                    <div class="bg-surface-container-low rounded-xl p-2 text-center">
+                        <p class="text-[10px] font-bold text-outline mb-1">OD c/c</p>
+                        <input id="av-od-cc" type="text" placeholder="20/20" class="w-full bg-transparent text-center text-sm font-bold outline-none text-primary">
+                    </div>
+                    <div class="bg-surface-container-low rounded-xl p-2 text-center">
+                        <p class="text-[10px] font-bold text-outline mb-1">OI s/c</p>
+                        <input id="av-oi-sc" type="text" placeholder="20/20" class="w-full bg-transparent text-center text-sm font-bold outline-none text-primary">
+                    </div>
+                    <div class="bg-surface-container-low rounded-xl p-2 text-center">
+                        <p class="text-[10px] font-bold text-outline mb-1">OI c/c</p>
+                        <input id="av-oi-cc" type="text" placeholder="20/20" class="w-full bg-transparent text-center text-sm font-bold outline-none text-primary">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rx refraction table -->
+            <div>
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Refracción / Receta</p>
+                <div class="grid grid-cols-5 gap-1 text-center text-xs">
+                    <div class="rx-cell header">Ojo</div>
+                    <div class="rx-cell header">Esfera</div>
+                    <div class="rx-cell header">Cilindro</div>
+                    <div class="rx-cell header">Eje</div>
+                    <div class="rx-cell header">Adición</div>
+
+                    <div class="rx-cell eye">OD</div>
+                    <input class="rx-cell" id="rx-od-esf" placeholder="+0.00">
+                    <input class="rx-cell" id="rx-od-cil" placeholder="-0.00">
+                    <input class="rx-cell" id="rx-od-eje" placeholder="0°">
+                    <input class="rx-cell" id="rx-od-add" placeholder="+0.00">
+
+                    <div class="rx-cell eye">OI</div>
+                    <input class="rx-cell" id="rx-oi-esf" placeholder="+0.00">
+                    <input class="rx-cell" id="rx-oi-cil" placeholder="-0.00">
+                    <input class="rx-cell" id="rx-oi-eje" placeholder="0°">
+                    <input class="rx-cell" id="rx-oi-add" placeholder="+0.00">
+                </div>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <div class="bg-surface-container-low rounded-xl p-2">
+                        <p class="text-[10px] font-bold text-outline mb-1">D.P. (mm)</p>
+                        <input id="rx-dp" type="text" placeholder="63/31" class="w-full bg-transparent text-sm font-bold outline-none text-on-surface">
+                    </div>
+                    <div class="bg-surface-container-low rounded-xl p-2">
+                        <p class="text-[10px] font-bold text-outline mb-1">Tipo de Lente</p>
+                        <select id="rx-lens-type" class="w-full bg-transparent text-sm outline-none text-on-surface">
+                            <option>Monofocal</option><option>Bifocal</option><option>Multifocal</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observations -->
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Observaciones Clínicas</label>
+                <textarea id="c-notes" rows="3" placeholder="Hallazgos, diagnóstico, indicaciones especiales…"
+                          class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 resize-none"></textarea>
+            </div>
+
+            <div class="flex gap-2 pt-1">
+                <button onclick="closeNewConsultModal()" class="flex-1 py-2.5 rounded-xl bg-surface-container text-on-surface text-sm font-bold hover:bg-surface-dim transition-all">Cancelar</button>
+                <button onclick="saveConsultation()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:translate-y-0">
+                    Guardar Consulta
                 </button>
             </div>
-            <div class="h-8 w-[1px] bg-slate-100 hidden sm:block"></div>
-            <div class="flex items-center gap-3 cursor-pointer group">
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-on-surface leading-none group-hover:text-primary transition-colors">Dr. Roberto Smith</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Optometrista</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0">R</div>
-            </div>
         </div>
-    </header>
-
-        <main id="main-content" class="pt-16 min-h-screen pb-20 sidebar-transition lg:ml-64 ml-0 overflow-x-hidden">
-            
-<!-- Patient Quick Info Bento Header -->
-<div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-<div class="md:col-span-2 glass-card rounded-xl p-8 flex flex-col justify-between surface-container-lowest border border-white/20">
-<div>
-<h2 class="font-headline text-3xl font-extrabold text-primary mb-1">Juan Pérez</h2>
-<div class="flex gap-4 items-center">
-<span class="bg-secondary-container text-on-secondary-container text-xs font-bold px-3 py-1 rounded-full uppercase">Activo</span>
-<span class="text-outline text-sm">45 Años • Masculino</span>
-</div>
-</div>
-<div class="mt-6 flex gap-8">
-<div>
-<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Última Cita</p>
-<p class="text-on-surface font-semibold">12 de Octubre, 2023</p>
-</div>
-<div>
-<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Próxima Cita</p>
-<p class="text-on-surface font-semibold">15 de Abril, 2024</p>
-</div>
-</div>
-</div>
-<div class="glass-card rounded-xl p-6 surface-container-lowest border border-white/20 flex flex-col items-center justify-center text-center">
-<span class="material-symbols-outlined text-primary text-4xl mb-2" style="font-variation-settings: 'FILL' 1;">visibility</span>
-<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Agudeza Visual</p>
-<p class="text-2xl font-black text-on-surface">20/20 <span class="text-xs font-normal text-outline">(OD)</span></p>
-</div>
-<div class="glass-card rounded-xl p-6 surface-container-lowest border border-white/20 flex flex-col items-center justify-center text-center">
-<span class="material-symbols-outlined text-tertiary-container text-4xl mb-2" style="font-variation-settings: 'FILL' 1;">pending_actions</span>
-<p class="text-[10px] text-outline uppercase font-bold tracking-tighter">Pendientes</p>
-<p class="text-2xl font-black text-on-surface">02 <span class="text-xs font-normal text-outline">Estudios</span></p>
-</div>
-</div>
-<!-- Dashboard Content Layout -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-<!-- Left Column: Tabs & Clinical Data -->
-<div class="lg:col-span-2 space-y-10">
-<!-- Prescription Section -->
-<section>
-<div class="flex justify-between items-end mb-6">
-<h3 class="font-headline text-xl font-bold text-on-surface">Graduación Actual</h3>
-<button class="flex items-center gap-2 text-primary text-sm font-semibold hover:underline">
-<span class="material-symbols-outlined text-sm">content_copy</span>
-                                Clonar Receta Anterior
-                            </button>
-</div>
-<div class="bg-surface-container-low rounded-xl p-1 overflow-x-auto">
-<table class="w-full text-left border-separate border-spacing-2 min-w-[500px]">
-<thead>
-<tr class="text-[10px] text-outline uppercase font-bold">
-<th class="p-3">Ojo</th>
-<th class="p-3">Esfera</th>
-<th class="p-3">Cilindro</th>
-<th class="p-3">Eje</th>
-<th class="p-3">AV</th>
-</tr>
-</thead>
-<tbody>
-<tr class="glass-card rounded-lg overflow-hidden">
-<td class="p-4 font-bold text-primary">Derecho (OD)</td>
-<td class="p-4 font-mono text-on-surface">-2.50</td>
-<td class="p-4 font-mono text-on-surface">-0.75</td>
-<td class="p-4 font-mono text-on-surface">165°</td>
-<td class="p-4 font-mono text-on-surface">20/20</td>
-</tr>
-<tr class="glass-card rounded-lg overflow-hidden">
-<td class="p-4 font-bold text-primary">Izquierdo (OI)</td>
-<td class="p-4 font-mono text-on-surface">-2.25</td>
-<td class="p-4 font-mono text-on-surface">-1.00</td>
-<td class="p-4 font-mono text-on-surface">10°</td>
-<td class="p-4 font-mono text-on-surface">20/25</td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<!-- Evolution Chart Simulation -->
-<section>
-<h3 class="font-headline text-xl font-bold text-on-surface mb-6">Evolución de Miopía</h3>
-<div class="glass-card rounded-xl p-8 surface-container-lowest border border-white/20 h-64 relative flex items-end justify-between">
-<!-- Visual Chart Mockup -->
-<div class="absolute inset-x-8 bottom-8 top-16 flex items-end gap-1">
-<div class="w-full bg-primary/10 rounded-t-lg relative group transition-all" style="height: 40%;">
-<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">2021</div>
-</div>
-<div class="w-full bg-primary/20 rounded-t-lg relative group transition-all" style="height: 55%;">
-<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">2022</div>
-</div>
-<div class="w-full bg-primary/40 rounded-t-lg relative group transition-all" style="height: 70%;">
-<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">2023</div>
-</div>
-<div class="w-full primary-gradient rounded-t-lg relative group transition-all" style="height: 85%;">
-<div class="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-on-surface text-white text-[10px] px-2 py-1 rounded">Actual</div>
-</div>
-</div>
-<div class="absolute inset-x-8 top-8 flex justify-between text-[10px] text-outline font-bold uppercase">
-<span>-1.00 Dioptrías</span>
-<span>-3.00 Dioptrías</span>
-</div>
-</div>
-</section>
-<!-- Files Section -->
-<section>
-<h3 class="font-headline text-xl font-bold text-on-surface mb-6">Archivos &amp; Exámenes</h3>
-<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-<div class="group relative rounded-xl overflow-hidden aspect-square cursor-pointer">
-<img class="w-full h-full object-cover transition-transform group-hover:scale-110" data-alt="high resolution fundus photograph showing detailed view of the retina and optic nerve head in clinical setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWm7fAHWrH1dS25Gy4FQILoJb2vwbmzgJTN0FurNKexfaXUmeKbYiT4sXxmJTG1lnoNBcY1rxbJBOWbyjZUVr6H4N6sb4qzafFYyc4RJh0xkErPGGlPszTSGqdIMOTSPMczEyOt3vAyjk3yCTPxU7vWyUHwjUNcqhud69zChGw9muPNPMYiFd7HdsXPKmFCuZb0ilvNBevwsLlNSQu-Wc-3Rx7HG8fXq92R5F4VSZ-c20CTd13oUuK6XuKsW9XXMKE1y6r3NmTIIPs"/>
-<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-<span class="text-white font-bold text-xs">Fondo de Ojo - Oct 23</span>
-</div>
-</div>
-<div class="group relative rounded-xl overflow-hidden aspect-square cursor-pointer">
-<img class="w-full h-full object-cover transition-transform group-hover:scale-110" data-alt="optical coherence tomography scan of a human eye displaying colored cross-section of retinal layers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhchdpfMc3N7VeAks4LG_iPRiV9J-5B-sordYShAbyo0zA3wzSN-uJUekfr0nIxjKGqrSHnYcaAcJzH2HqQeX7zfBO0H7PlE9wT9b1nlFKx-rAx1Csojnh15pTEOrn3zvlXE7DtCTLxGZm8vEN_I9St5CD_tDGxnUebySCdiil3YUtRCzrmmR48Y4qU03sC2rO0BOWCY8W-Fk5gJ_FdReaxDCKzIIiLJsa90paDdT5AJrZJ9D3uJIxB574i9gVcv1l99etIl5Bcia-"/>
-<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-<span class="text-white font-bold text-xs">OCT Macular - May 23</span>
-</div>
-</div>
-<div class="border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center text-outline hover:bg-surface-container transition-colors cursor-pointer aspect-square">
-<span class="material-symbols-outlined text-4xl mb-2">add_a_photo</span>
-<span class="text-xs font-bold uppercase tracking-widest">Subir Archivo</span>
-</div>
-</div>
-</section>
-</div>
-<!-- Right Column: Personal Data & Purchase History -->
-<div class="space-y-10">
-<!-- Personal Info Card -->
-<section class="glass-card rounded-xl p-8 surface-container-lowest border border-white/20">
-<h3 class="font-headline text-lg font-bold text-on-surface mb-6">Ficha del Paciente</h3>
-<div class="space-y-4">
-<div>
-<label class="text-[10px] text-outline uppercase font-bold block mb-1">Teléfono</label>
-<p class="text-on-surface font-medium">+54 9 11 5555-1234</p>
-</div>
-<div>
-<label class="text-[10px] text-outline uppercase font-bold block mb-1">Correo Electrónico</label>
-<p class="text-on-surface font-medium">juan.perez@email.com</p>
-</div>
-<div class="h-px bg-surface-container-high w-full my-4"></div>
-<div>
-<label class="text-[10px] text-outline uppercase font-bold block mb-1">Antecedentes</label>
-<div class="flex flex-wrap gap-2 mt-2">
-<span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold px-3 py-1 rounded-full">Diabetes Tipo II</span>
-<span class="bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold px-3 py-1 rounded-full">Glaucoma Familiar</span>
-</div>
-</div>
-</div>
-</section>
-<!-- Purchase History -->
-<section>
-<h3 class="font-headline text-lg font-bold text-on-surface mb-6">Historial de Compras</h3>
-<div class="space-y-4">
-<!-- Purchase Item -->
-<div class="glass-card rounded-xl p-4 surface-container-lowest border border-white/20 flex gap-4 items-center">
-<div class="w-12 h-12 bg-sky-50 rounded-lg flex items-center justify-center text-sky-600">
-<span class="material-symbols-outlined">eyeglasses</span>
-</div>
-<div class="flex-1">
-<p class="text-sm font-bold text-on-surface">Ray-Ban Wayfarer Classic</p>
-<p class="text-[10px] text-outline">Comprado: 15 Ago, 2023</p>
-</div>
-<div class="text-right">
-<p class="text-sm font-black text-primary">$18.500</p>
-<span class="text-[8px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase">Entregado</span>
-</div>
-</div>
-<!-- Purchase Item -->
-<div class="glass-card rounded-xl p-4 surface-container-lowest border border-white/20 flex gap-4 items-center">
-<div class="w-12 h-12 bg-sky-50 rounded-lg flex items-center justify-center text-sky-600">
-<span class="material-symbols-outlined">contacts_product</span>
-</div>
-<div class="flex-1">
-<p class="text-sm font-bold text-on-surface">Acuvue Oasys (Pack 6)</p>
-<p class="text-[10px] text-outline">Comprado: 02 May, 2023</p>
-</div>
-<div class="text-right">
-<p class="text-sm font-black text-primary">$9.200</p>
-<span class="text-[8px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase">Entregado</span>
-</div>
-</div>
-<button class="w-full py-3 text-sm font-bold text-primary border border-primary/20 rounded-xl hover:bg-primary/5 transition-colors">
-                                Ver Todo el Historial
-                            </button>
-</div>
-</section>
-</div>
-</div>
-<!-- Vertical Spacing -->
-<div class="h-20"></div>
-
-        </main>
     </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA STORE
+═══════════════════════════════════════════════════ */
+const PATIENTS = [
+    {
+        id:1, name:'Carlos R. Mendoza', cedula:'V-12345678', phone:'+58 414-123-4567',
+        email:'carlos.mendoza@email.com', dob:'1985-03-12', gender:'M', blood:'O+',
+        antecedentes:{ familiares:'Miopía en familia directa', personales:'Diabetes tipo 2', alergias:'Ninguna', medicamentos:'Metformina 500mg' },
+        nextRevision:'2026-12-14',
+        consultations:[
+            { id:1, date:'2026-06-14', doctor:'Dr. Roberto Smith', reason:'Control anual',
+              av:{ od_sc:'20/60', od_cc:'20/20', oi_sc:'20/80', oi_cc:'20/20' },
+              rx:{ od:{ esf:'-2.50', cil:'-0.75', eje:'180°', add:'+1.50' }, oi:{ esf:'-3.00', cil:'-1.00', eje:'175°', add:'+1.50' }, dp:'63', tipo:'Multifocal' },
+              lensometria:{ od:{ esf:'-2.25', cil:'-0.50', eje:'178°' }, oi:{ esf:'-2.75', cil:'-0.75', eje:'173°' } },
+              notes:'Ligero aumento en miopía OI. Se recomienda monofocal para cerca y multifocal para uso general.', status:'completada' },
+            { id:2, date:'2025-06-10', doctor:'Dr. Roberto Smith', reason:'Primera consulta',
+              av:{ od_sc:'20/80', od_cc:'20/25', oi_sc:'20/100', oi_cc:'20/25' },
+              rx:{ od:{ esf:'-2.25', cil:'-0.50', eje:'178°', add:'+1.00' }, oi:{ esf:'-2.75', cil:'-0.75', eje:'173°', add:'+1.00' }, dp:'63', tipo:'Monofocal' },
+              lensometria:null, notes:'Paciente refiere dificultad para visión de lejos. Prescripción inicial.', status:'completada' },
+        ]
+    },
+    {
+        id:2, name:'María Fernanda Ruiz', cedula:'V-23456789', phone:'+58 424-234-5678',
+        email:'mfruiz@correo.com', dob:'1992-07-25', gender:'F', blood:'A+',
+        antecedentes:{ familiares:'Glaucoma en abuelo materno', personales:'Ninguno relevante', alergias:'Penicilina', medicamentos:'Ninguno' },
+        nextRevision:'2026-09-25',
+        consultations:[
+            { id:3, date:'2026-03-15', doctor:'Dra. Ana Castillo', reason:'Adaptación lentes de contacto',
+              av:{ od_sc:'20/200', od_cc:'20/20', oi_sc:'20/200', oi_cc:'20/20' },
+              rx:{ od:{ esf:'-5.00', cil:'-1.25', eje:'90°', add:'' }, oi:{ esf:'-4.75', cil:'-1.00', eje:'88°', add:'' }, dp:'61', tipo:'Monofocal' },
+              lensometria:{ od:{ esf:'-4.75', cil:'-1.00', eje:'88°' }, oi:{ esf:'-4.50', cil:'-0.75', eje:'85°' } },
+              notes:'Alta miopía. Paciente candidata a lentes de contacto blandos mensuales.', status:'completada' },
+        ]
+    },
+    {
+        id:3, name:'Lucía Gómez', cedula:'V-34567890', phone:'+58 416-345-6789',
+        email:'luciag@email.com', dob:'1978-11-02', gender:'F', blood:'B-',
+        antecedentes:{ familiares:'Sin antecedentes oculares', personales:'Hipertensión controlada', alergias:'Látex', medicamentos:'Losartán 50mg' },
+        nextRevision:'2026-11-02',
+        consultations:[
+            { id:4, date:'2026-01-20', doctor:'Dr. Miguel Torres', reason:'Chequeo de rutina',
+              av:{ od_sc:'20/30', od_cc:'20/20', oi_sc:'20/40', oi_cc:'20/20' },
+              rx:{ od:{ esf:'-0.75', cil:'-0.25', eje:'45°', add:'+2.00' }, oi:{ esf:'-1.00', cil:'-0.50', eje:'40°', add:'+2.00' }, dp:'62', tipo:'Bifocal' },
+              lensometria:{ od:{ esf:'-0.50', cil:'-0.25', eje:'44°' }, oi:{ esf:'-0.75', cil:'-0.50', eje:'38°' } },
+              notes:'Presbicia moderada. Se recomienda bifocal o progresivo.', status:'completada' },
+        ]
+    },
+    {
+        id:4, name:'José Alberto Torres', cedula:'V-45678901', phone:'+58 412-456-7890',
+        email:'jtorres@mail.com', dob:'2001-05-18', gender:'M', blood:'AB+',
+        antecedentes:{ familiares:'Astigmatismo familiar', personales:'Ninguno', alergias:'Ninguna', medicamentos:'Ninguno' },
+        nextRevision:'2027-05-18',
+        consultations:[
+            { id:5, date:'2025-11-10', doctor:'Dr. Roberto Smith', reason:'Primera vez',
+              av:{ od_sc:'20/40', od_cc:'20/20', oi_sc:'20/40', oi_cc:'20/20' },
+              rx:{ od:{ esf:'+0.50', cil:'-1.00', eje:'95°', add:'' }, oi:{ esf:'+0.25', cil:'-1.25', eje:'88°', add:'' }, dp:'64', tipo:'Monofocal' },
+              lensometria:null, notes:'Astigmatismo leve bilateral. Primera prescripción.', status:'completada' },
+        ]
+    },
+    {
+        id:5, name:'Ana María Castillo', cedula:'V-56789012', phone:'+58 426-567-8901',
+        email:'acastillo@gmail.com', dob:'1965-09-30', gender:'F', blood:'O-',
+        antecedentes:{ familiares:'Cataratas en madre', personales:'Artritis reumatoide', alergias:'Ibuprofeno', medicamentos:'Metotrexato' },
+        nextRevision:'2026-09-30',
+        consultations:[
+            { id:6, date:'2026-05-05', doctor:'Dra. Ana Castillo', reason:'Control post-operatorio',
+              av:{ od_sc:'20/20', od_cc:'20/20', oi_sc:'20/25', oi_cc:'20/20' },
+              rx:{ od:{ esf:'+1.00', cil:'-0.25', eje:'10°', add:'+2.50' }, oi:{ esf:'+1.25', cil:'-0.50', eje:'15°', add:'+2.50' }, dp:'60', tipo:'Multifocal' },
+              lensometria:{ od:{ esf:'+0.75', cil:'-0.25', eje:'8°' }, oi:{ esf:'+1.00', cil:'-0.25', eje:'12°' } },
+              notes:'Post-operatorio de catarata OD satisfactorio. Continúa con multifocal de alta adición.', status:'completada' },
+        ]
+    },
+];
+
+let selectedPatient = null;
+let activeExpTab = 'timeline';
+let consultIdCounter = 10;
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    renderPatientList(PATIENTS);
+    document.getElementById('c-date').valueAsDate = new Date('2026-06-14');
+});
+
+/* ═══════════════════════════════════════════════════
+   PATIENT LIST
+═══════════════════════════════════════════════════ */
+function renderPatientList(patients) {
+    const list = document.getElementById('patient-list');
+    document.getElementById('patient-count-label').textContent = `${patients.length} paciente${patients.length !== 1 ? 's' : ''}`;
+    list.innerHTML = patients.map(p => {
+        const age = calcAge(p.dob);
+        const lastConsult = p.consultations[0];
+        return `<div onclick="selectPatient(${p.id})"
+            class="patient-card rounded-xl border border-transparent p-3 flex items-center gap-3 ${selectedPatient?.id === p.id ? 'selected border-sky-200' : 'hover:bg-surface-container-low'}">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/30 to-primary-container/30 flex items-center justify-center text-primary font-extrabold text-sm shrink-0">
+                ${p.name.charAt(0)}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-on-surface truncate">${p.name}</p>
+                <p class="text-[10px] text-outline">${p.cedula} · ${age} años</p>
+                ${lastConsult ? `<p class="text-[10px] text-primary font-semibold mt-0.5">Últ. consulta: ${lastConsult.date}</p>` : ''}
+            </div>
+            <span class="material-symbols-outlined text-outline text-base shrink-0">chevron_right</span>
+        </div>`;
+    }).join('');
+}
+
+function filterPatients(q) {
+    const filtered = PATIENTS.filter(p =>
+        p.name.toLowerCase().includes(q.toLowerCase()) ||
+        p.cedula.includes(q)
+    );
+    renderPatientList(filtered);
+}
+
+function selectPatient(id) {
+    selectedPatient = PATIENTS.find(p => p.id === id);
+    renderPatientList(PATIENTS);
+    renderExpediente();
+}
+
+/* ═══════════════════════════════════════════════════
+   EXPEDIENTE RENDERING
+═══════════════════════════════════════════════════ */
+function renderExpediente() {
+    const p = selectedPatient;
+    if (!p) return;
+
+    document.getElementById('exp-empty').classList.add('hidden');
+    document.getElementById('exp-content').classList.remove('hidden');
+    document.getElementById('exp-content').className = 'p-5 md:p-6 space-y-5 slide-r';
+
+    // Profile
+    const age = calcAge(p.dob);
+    document.getElementById('patient-avatar').textContent = p.name.charAt(0);
+    document.getElementById('patient-name').textContent   = p.name;
+    document.getElementById('patient-meta').textContent   = `${p.gender === 'M' ? 'Masculino' : 'Femenino'} · Nacido el ${new Date(p.dob+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'})}`;
+    document.getElementById('patient-age-chip').textContent  = `${age} años`;
+    document.getElementById('patient-blood-chip').textContent = `${p.blood}`;
+    document.getElementById('p-cedula').textContent  = p.cedula;
+    document.getElementById('p-phone').textContent   = p.phone;
+    document.getElementById('p-email').textContent   = p.email;
+    document.getElementById('p-next').textContent    = p.nextRevision ? new Date(p.nextRevision+'T12:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'}) : 'Sin programar';
+
+    const lastConsult = p.consultations[0];
+    const avChip = document.getElementById('patient-av-chip');
+    if (lastConsult) {
+        const avOd = lastConsult.av.od_cc;
+        const isNormal = avOd === '20/20';
+        avChip.textContent = `AV ${avOd}`;
+        avChip.className = `text-[10px] px-2 py-0.5 rounded-full font-bold ${isNormal ? 'av-normal' : 'av-reducida'}`;
+    }
+
+    renderTimeline();
+    renderLastRx();
+    renderLensometry();
+    renderAntecedentes();
+}
+
+/* ═══════════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════════ */
+function switchExpTab(tab, btn) {
+    activeExpTab = tab;
+    ['timeline','receta','lensometria','antecedentes'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+    });
+    document.getElementById(`tab-${tab}`).classList.remove('hidden');
+    document.querySelectorAll('.exp-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════
+   TIMELINE
+═══════════════════════════════════════════════════ */
+function renderTimeline() {
+    const container = document.getElementById('timeline-container');
+    const consults  = selectedPatient?.consultations || [];
+
+    container.innerHTML = consults.map((c, i) => `
+        <div class="timeline-item fade-up" style="animation-delay:${i*.06}s">
+            <div class="timeline-dot bg-primary" style="color:#00658d"></div>
+            <div class="bg-white rounded-2xl border border-surface-container shadow-sm mb-4 overflow-hidden">
+                <div class="px-4 py-3 border-b border-surface-container flex items-center justify-between bg-gradient-to-r from-primary/3 to-transparent">
+                    <div>
+                        <p class="text-sm font-extrabold text-on-surface">${c.date}</p>
+                        <p class="text-[10px] text-outline mt-0.5">${c.reason} · ${c.doctor}</p>
+                    </div>
+                    <span class="text-[10px] bg-blue-50 text-blue-700 font-black px-2.5 py-1 rounded-full uppercase">${c.status}</span>
+                </div>
+                <div class="px-4 py-3 space-y-3">
+                    <!-- AV chips -->
+                    <div class="flex flex-wrap gap-2">
+                        ${Object.entries(c.av).map(([k,v]) => `
+                            <div class="bg-surface-container-low rounded-lg px-2.5 py-1 text-center">
+                                <p class="text-[9px] font-bold text-outline">${k.replace('_',' ').toUpperCase()}</p>
+                                <p class="text-xs font-extrabold text-primary">${v}</p>
+                            </div>`).join('')}
+                    </div>
+                    <!-- Notes -->
+                    ${c.notes ? `<p class="text-xs text-on-surface-variant italic border-l-2 border-primary/30 pl-3">${c.notes}</p>` : ''}
+                    <!-- Rx summary -->
+                    <div class="flex items-center gap-2 text-[10px] text-outline">
+                        <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings:'FILL' 1">receipt</span>
+                        Rx OD: ${c.rx.od.esf} / ${c.rx.od.cil} x ${c.rx.od.eje} &nbsp;|&nbsp; OI: ${c.rx.oi.esf} / ${c.rx.oi.cil} x ${c.rx.oi.eje}
+                        <span class="ml-1 bg-surface-container px-1.5 py-0.5 rounded-full font-bold">${c.rx.tipo}</span>
+                    </div>
+                </div>
+            </div>
+        </div>`).join('') || '<p class="text-sm text-outline text-center py-12">No hay consultas registradas.</p>';
+}
+
+/* ═══════════════════════════════════════════════════
+   LAST PRESCRIPTION
+═══════════════════════════════════════════════════ */
+function renderLastRx() {
+    const c = selectedPatient?.consultations[0];
+    if (!c) return;
+    document.getElementById('receta-date').textContent = `Emitida el ${c.date} por ${c.doctor}`;
+
+    const grid = document.getElementById('rx-grid');
+    grid.innerHTML = `
+        <div class="rx-cell header">Ojo</div>
+        <div class="rx-cell header">Esfera</div>
+        <div class="rx-cell header">Cilindro</div>
+        <div class="rx-cell header">Eje</div>
+        <div class="rx-cell header">Adición</div>
+        <div class="rx-cell header">Tipo</div>
+
+        <div class="rx-cell eye">OD</div>
+        <div class="rx-cell">${c.rx.od.esf}</div>
+        <div class="rx-cell">${c.rx.od.cil}</div>
+        <div class="rx-cell">${c.rx.od.eje}</div>
+        <div class="rx-cell">${c.rx.od.add || '—'}</div>
+        <div class="rx-cell">${c.rx.tipo}</div>
+
+        <div class="rx-cell eye">OI</div>
+        <div class="rx-cell">${c.rx.oi.esf}</div>
+        <div class="rx-cell">${c.rx.oi.cil}</div>
+        <div class="rx-cell">${c.rx.oi.eje}</div>
+        <div class="rx-cell">${c.rx.oi.add || '—'}</div>
+        <div class="rx-cell">—</div>`;
+
+    document.getElementById('rx-extra').innerHTML = `
+        <div class="bg-surface-container-low rounded-xl p-2 text-center">
+            <p class="text-[10px] text-outline font-bold">D.P. Lejos</p>
+            <p class="text-sm font-extrabold text-on-surface">${c.rx.dp} mm</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-2 text-center">
+            <p class="text-[10px] text-outline font-bold">AV OD c/c</p>
+            <p class="text-sm font-extrabold text-primary">${c.av.od_cc}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-2 text-center">
+            <p class="text-[10px] text-outline font-bold">AV OI c/c</p>
+            <p class="text-sm font-extrabold text-primary">${c.av.oi_cc}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-2 text-center">
+            <p class="text-[10px] text-outline font-bold">Tipo Lente</p>
+            <p class="text-sm font-extrabold text-on-surface">${c.rx.tipo}</p>
+        </div>`;
+    document.getElementById('rx-notes').textContent = c.notes || 'Sin indicaciones adicionales.';
+}
+
+/* ═══════════════════════════════════════════════════
+   LENSOMETRY
+═══════════════════════════════════════════════════ */
+function renderLensometry() {
+    const c = selectedPatient?.consultations[0];
+    const grid = document.getElementById('lens-grid');
+    if (!c?.lensometria) {
+        grid.innerHTML = '<div class="col-span-6 text-center text-xs text-outline py-8">Sin datos de lensometría registrados.</div>';
+        return;
+    }
+    const l = c.lensometria;
+    grid.innerHTML = `
+        <div class="rx-cell header">Ojo</div>
+        <div class="rx-cell header">Esfera</div>
+        <div class="rx-cell header">Cilindro</div>
+        <div class="rx-cell header">Eje</div>
+        <div class="rx-cell header">Prisma</div>
+        <div class="rx-cell header">Base</div>
+
+        <div class="rx-cell eye">OD</div>
+        <div class="rx-cell">${l.od.esf}</div>
+        <div class="rx-cell">${l.od.cil}</div>
+        <div class="rx-cell">${l.od.eje}</div>
+        <div class="rx-cell">—</div>
+        <div class="rx-cell">—</div>
+
+        <div class="rx-cell eye">OI</div>
+        <div class="rx-cell">${l.oi.esf}</div>
+        <div class="rx-cell">${l.oi.cil}</div>
+        <div class="rx-cell">${l.oi.eje}</div>
+        <div class="rx-cell">—</div>
+        <div class="rx-cell">—</div>`;
+}
+
+/* ═══════════════════════════════════════════════════
+   ANTECEDENTES
+═══════════════════════════════════════════════════ */
+function renderAntecedentes() {
+    const p = selectedPatient;
+    const a = p.antecedentes;
+    document.getElementById('antecedentes-content').innerHTML = `
+        <div class="bg-surface-container-low rounded-xl p-3">
+            <p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1.5">Antecedentes Familiares</p>
+            <p class="text-sm text-on-surface">${a.familiares}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-3">
+            <p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1.5">Antecedentes Personales</p>
+            <p class="text-sm text-on-surface">${a.personales}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-3">
+            <p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1.5">Alergias</p>
+            <p class="text-sm ${a.alergias === 'Ninguna' ? 'text-green-600' : 'text-red-600'} font-semibold">${a.alergias}</p>
+        </div>
+        <div class="bg-surface-container-low rounded-xl p-3">
+            <p class="text-[10px] font-bold text-outline uppercase tracking-wider mb-1.5">Medicamentos Actuales</p>
+            <p class="text-sm text-on-surface">${a.medicamentos}</p>
+        </div>`;
+}
+
+/* ═══════════════════════════════════════════════════
+   NEW CONSULTATION MODAL
+═══════════════════════════════════════════════════ */
+function openNewConsultModal() {
+    if (selectedPatient) {
+        const sel = document.getElementById('c-patient');
+        for (let opt of sel.options) {
+            if (opt.text.includes(selectedPatient.name.split(' ')[0])) { sel.value = opt.value; break; }
+        }
+    }
+    document.getElementById('modal-consult').classList.remove('hidden');
+}
+
+function closeNewConsultModal() { document.getElementById('modal-consult').classList.add('hidden'); }
+
+function saveConsultation() {
+    const patientId = parseInt(document.getElementById('c-patient').value);
+    if (!patientId) { alert('Selecciona un paciente.'); return; }
+
+    const patient = PATIENTS.find(p => p.id === patientId);
+    const newConsult = {
+        id: consultIdCounter++,
+        date: document.getElementById('c-date').value || '2026-06-14',
+        doctor: document.getElementById('c-doctor').value,
+        reason: document.getElementById('c-reason').value || 'Consulta general',
+        av: {
+            od_sc: document.getElementById('av-od-sc').value || '20/20',
+            od_cc: document.getElementById('av-od-cc').value || '20/20',
+            oi_sc: document.getElementById('av-oi-sc').value || '20/20',
+            oi_cc: document.getElementById('av-oi-cc').value || '20/20',
+        },
+        rx: {
+            od: { esf: document.getElementById('rx-od-esf').value || '0.00', cil: document.getElementById('rx-od-cil').value || '0.00', eje: document.getElementById('rx-od-eje').value || '0°', add: document.getElementById('rx-od-add').value || '' },
+            oi: { esf: document.getElementById('rx-oi-esf').value || '0.00', cil: document.getElementById('rx-oi-cil').value || '0.00', eje: document.getElementById('rx-oi-eje').value || '0°', add: document.getElementById('rx-oi-add').value || '' },
+            dp: document.getElementById('rx-dp').value || '—',
+            tipo: document.getElementById('rx-lens-type').value,
+        },
+        lensometria: null,
+        notes: document.getElementById('c-notes').value,
+        status: 'completada',
+    };
+
+    patient.consultations.unshift(newConsult);
+    closeNewConsultModal();
+
+    if (selectedPatient?.id === patientId) {
+        renderExpediente();
+    }
+    renderPatientList(PATIENTS);
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════ */
+function calcAge(dob) {
+    const birth = new Date(dob+'T12:00');
+    const today = new Date('2026-06-14');
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    return age;
+}
+
+function printExpediente() { window.print(); }
+</script>
+</div>
 </body>
 </html>
