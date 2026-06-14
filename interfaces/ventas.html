@@ -859,7 +859,6 @@ function clearCart() {
 
 function renderCart() {
     const container = document.getElementById('cart-items');
-    const emptyEl   = document.getElementById('cart-empty');
     const cobrarBtn = document.getElementById('btn-cobrar');
     const countLabel = document.getElementById('cart-count-label');
 
@@ -867,15 +866,18 @@ function renderCart() {
     countLabel.textContent = `${totalItems} ítem${totalItems !== 1 ? 's' : ''}`;
 
     if (cart.length === 0) {
-        container.innerHTML = '';
-        container.appendChild(emptyEl);
-        emptyEl.classList.remove('hidden');
+        container.innerHTML = `
+            <div id="cart-empty" class="flex flex-col items-center justify-center h-full text-outline py-12">
+                <span class="material-symbols-outlined text-5xl mb-3 text-surface-container-highest">shopping_cart</span>
+                <p class="text-sm font-semibold">El carrito está vacío</p>
+                <p class="text-xs mt-1">Selecciona productos del catálogo</p>
+            </div>
+        `;
         cobrarBtn.setAttribute('disabled', '');
         updateTotals();
         return;
     }
 
-    emptyEl.classList.add('hidden');
     const items = cart.map(c => `
         <div class="cart-item flex items-center gap-2 bg-surface-container-low/60 rounded-xl p-2.5">
             <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">

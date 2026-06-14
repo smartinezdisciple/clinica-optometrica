@@ -214,9 +214,8 @@ test.describe('Historial de ventas', () => {
         await openVentas(page);
         await page.click('#tab-history');
         await expect(page.locator('#panel-history')).not.toHaveClass(/hidden/);
-        await expect(page.locator('#history-table-body tr')).toHaveCount(
-            { min: 1 }
-        );
+        const count = await page.locator('#history-table-body tr').count();
+        expect(count).toBeGreaterThanOrEqual(1);
     });
 
     test('filtro "Completadas" muestra solo órdenes completadas', async ({ page }) => {
