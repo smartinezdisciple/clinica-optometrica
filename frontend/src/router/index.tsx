@@ -15,6 +15,8 @@ const PaginaInventario = lazy(() => import('@/features/inventario/pages/PaginaIn
 const PaginaExpedientes = lazy(() => import('@/features/expedientes/pages/PaginaExpedientes'))
 const PaginaSucursales  = lazy(() => import('@/features/sucursales/pages/PaginaSucursales'))
 const PaginaUsuarios    = lazy(() => import('@/features/usuarios/pages/PaginaUsuarios'))
+const PaginaPacientes   = lazy(() => import('@/features/pacientes/pages/PaginaPacientes'))
+const PaginaEmpresas    = lazy(() => import('@/features/pacientes/pages/PaginaEmpresas'))
 const PaginaNoEncontrada = lazy(() => import('@/features/common/pages/PaginaNoEncontrada'))
 
 // ─── Guard de autenticación ───────────────────────────────────────────────────
@@ -68,6 +70,8 @@ export function AppRouter() {
             <Route path="/historias-clinicas"  element={<PaginaExpedientes />} />
             <Route path="/sucursales"          element={<PaginaSucursales />} />
             <Route path="/usuarios"            element={<PaginaUsuarios />} />
+            <Route path="/pacientes"           element={<PaginaPacientes />} />
+            <Route path="/empresas"            element={<PaginaEmpresas />} />
           </Route>
 
           {/* 404 */}

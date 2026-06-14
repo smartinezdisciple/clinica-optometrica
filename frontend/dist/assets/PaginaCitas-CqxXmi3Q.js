@@ -1,1 +1,0 @@
-import{j as e}from"./index-BUoNQHky.js";function a(){return e.jsxs("div",{className:"p-8 animate-fade-up",children:[e.jsx("h1",{className:"font-headline font-extrabold text-2xl text-on-surface",children:"Agenda de Citas"}),e.jsx("p",{className:"text-outline text-sm mt-2",children:"Módulo de Citas — Migración a React en Sprint 4"})]})}export{a as default};
