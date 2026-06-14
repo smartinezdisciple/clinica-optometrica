@@ -1,0 +1,35 @@
+{
+  "name": "clinica-optometrica",
+  "version": "1.0.0",
+  "description": "Sistema Web para Clínica Optométrica — Dr. Lentes Ópticas",
+  "private": true,
+  "scripts": {
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "jest --testPathPattern=tests/unit --coverage",
+    "test:integration": "playwright test tests/integration",
+    "test:unit:watch": "jest --testPathPattern=tests/unit --watch",
+    "lint:html": "htmlhint interfaces/**/*.html",
+    "lint:css": "stylelint css/**/*.css",
+    "lint": "npm run lint:html && npm run lint:css",
+    "docs:generate": "node scripts/generate-docs.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "htmlhint": "^1.1.4",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "stylelint": "^16.6.1",
+    "stylelint-config-standard": "^36.0.1"
+  },
+  "dependencies": {
+    "openai": "^4.52.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "js/**/*.js",
+      "tests/unit/helpers/**/*.js"
+    ]
+  }
+}
