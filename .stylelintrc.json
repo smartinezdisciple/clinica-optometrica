@@ -1,0 +1,24 @@
+{
+  "extends": "stylelint-config-standard",
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["import", "theme", "utility", "tailwind", "config"]
+      }
+    ],
+    "function-no-unknown": [
+      true,
+      {
+        "ignoreFunctions": ["theme"]
+      }
+    ],
+    "import-notation": null,
+    "font-family-name-quotes": null,
+    "declaration-block-single-line-max-declarations": null,
+    "color-function-notation": null,
+    "alpha-value-notation": null,
+    "property-no-vendor-prefix": null,
+    "no-descending-specificity": null
+  }
+}
