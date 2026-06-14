@@ -11,12 +11,19 @@
     "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
     "build": "npm run build --workspace=frontend && npm run build --workspace=backend",
     "test": "npm run test --workspace=backend && npm run test --workspace=frontend",
+    "test:unit": "npm run test --workspace=backend && npm run test --workspace=frontend",
+    "test:integration": "npx playwright test",
     "lint": "npm run lint --workspace=frontend && npm run lint --workspace=backend",
+    "lint:html": "htmlhint \"frontend/index.html\"",
+    "lint:css": "stylelint \"frontend/src/**/*.css\"",
     "docs:generate": "node scripts/generate-docs.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.44.1",
     "concurrently": "^8.2.2",
-    "htmlhint": "^1.1.4"
+    "htmlhint": "^1.1.4",
+    "stylelint": "^16.6.1",
+    "stylelint-config-standard": "^36.0.1"
   },
   "dependencies": {
     "openai": "^4.52.0"
