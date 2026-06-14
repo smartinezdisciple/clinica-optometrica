@@ -3,260 +3,876 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dr. Lentes | Citas</title>
-    
+    <meta name="description" content="Módulo de Citas — Agenda clínica interactiva para Dr. Lentes Ópticas. Gestión de citas, horarios y estados.">
+    <title>Dr. Lentes | Citas — Agenda Clínica</title>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script src="js/tailwind-config.js"></script>
-    <link href="css/style.css" rel="stylesheet">
-    <script src="js/app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <script src="../js/tailwind-config.js"></script>
+    <link href="../css/style.css" rel="stylesheet">
 
+    <style>
+        @keyframes fadeUp { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
+        @keyframes slideRight { from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)} }
+        @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.6} }
+        @keyframes scaleIn { from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)} }
+
+        .fade-up   { animation:fadeUp .4s ease both; }
+        .slide-r   { animation:slideRight .35s ease both; }
+        .scale-in  { animation:scaleIn .28s cubic-bezier(.34,1.56,.64,1) both; }
+        .live-dot  { animation:pulse-dot 2.2s infinite; }
+        .notif-dot { animation:pulse-dot 2.2s infinite; }
+
+        .glass { background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px); }
+
+        .sidebar-link { transition:background .2s,color .2s; }
+        .sidebar-link.active { background:#fff;color:#00658d;font-weight:700;box-shadow:0 1px 4px rgba(0,101,141,.08); }
+        .sidebar-link:hover  { background:rgba(0,174,239,.06);color:#00658d; }
+
+        .view-btn { transition:all .2s; }
+        .view-btn.active { background:#00658d;color:#fff; }
+        .view-btn:not(.active):hover { background:#e0f2fe;color:#00658d; }
+
+        /* Time slot grid */
+        .slot-col { display:grid; grid-template-rows: repeat(18, 3.5rem); }
+        .time-col  { display:grid; grid-template-rows: repeat(18, 3.5rem); }
+
+        /* Cita card on grid */
+        .cita-block {
+            border-left:3px solid currentColor;
+            transition:box-shadow .2s, transform .2s;
+            cursor:pointer;
+        }
+        .cita-block:hover { box-shadow:0 4px 16px rgba(0,101,141,.15); transform:translateY(-1px); }
+
+        /* Status colors */
+        .status-agendada   { color:#0369a1; background:#e0f2fe; border-color:#0369a1; }
+        .status-confirmada { color:#166534; background:#dcfce7; border-color:#166534; }
+        .status-en_curso   { color:#92400e; background:#fef3c7; border-color:#d97706; }
+        .status-completada { color:#1e3a5f; background:#dbeafe; border-color:#3b82f6; }
+        .status-cancelada  { color:#991b1b; background:#fee2e2; border-color:#ef4444; }
+
+        .badge-agendada   { background:#e0f2fe;color:#0369a1; }
+        .badge-confirmada { background:#dcfce7;color:#166534; }
+        .badge-en_curso   { background:#fef3c7;color:#92400e; }
+        .badge-completada { background:#dbeafe;color:#1e3a5f; }
+        .badge-cancelada  { background:#fee2e2;color:#991b1b; }
+
+        /* Modal */
+        .modal-bd { background:rgba(0,0,0,.45);backdrop-filter:blur(4px); }
+
+        /* Tab */
+        .tab-btn { border-bottom:2px solid transparent;transition:all .2s; }
+        .tab-btn.active { color:#00658d;border-bottom-color:#00658d;font-weight:700; }
+
+        /* Calendar day */
+        .cal-day { transition:background .15s; }
+        .cal-day:hover { background:#e0f2fe; }
+        .cal-day.today { background:#00658d;color:#fff!important; }
+        .cal-day.has-appt::after {
+            content:'';display:block;width:4px;height:4px;border-radius:50%;
+            background:#00aeef;margin:2px auto 0;
+        }
+
+        /* Capacity bar */
+        .cap-bar { transition:width 1s cubic-bezier(.34,1,.64,1); }
+
+        ::-webkit-scrollbar{width:5px;height:5px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#bdc8d1;border-radius:8px}
+    </style>
 </head>
+
 <body class="bg-surface font-body text-on-surface">
-    <div id="root">
-        
-    <!-- Sidebar Overlay (Mobile) -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+<div id="root">
 
-    <!-- SideNavBar -->
-    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-slate-50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col py-6 sidebar-transition lg:translate-x-0 -translate-x-full">
-        <!-- Fixed Header in Sidebar -->
-        <div class="px-6 mb-8 shrink-0">
+<div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-surface-container flex flex-col py-5 sidebar-transition lg:translate-x-0 -translate-x-full">
+    <div class="px-5 mb-7 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings:'FILL' 1">visibility</span>
+            </div>
+            <div class="logo-text overflow-hidden">
+                <p class="text-base font-extrabold font-headline bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent leading-none">Dr. Lentes</p>
+                <p class="text-[9px] uppercase tracking-[.18em] text-outline font-semibold mt-0.5">Ópticas Clínicas</p>
+            </div>
+        </div>
+    </div>
+
+    <nav class="flex-1 px-3 space-y-0.5 overflow-y-auto" id="sidebar-nav">
+        <a href="dashboard.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">dashboard</span>
+            <span class="nav-label">Tablero</span>
+        </a>
+        <a href="ventas.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">point_of_sale</span>
+            <span class="nav-label">Ventas</span>
+        </a>
+        <a href="inventario.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">inventory_2</span>
+            <span class="nav-label">Inventario</span>
+        </a>
+        <a href="historias-clinicas.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">clinical_notes</span>
+            <span class="nav-label">Historias Clínicas</span>
+        </a>
+        <a href="citas.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]" style="font-variation-settings:'FILL' 1">calendar_month</span>
+            <span class="nav-label">Citas</span>
+        </a>
+        <div class="my-3 h-px bg-surface-container mx-1"></div>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">bar_chart</span>
+            <span class="nav-label">Reportes</span>
+        </a>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">account_balance_wallet</span>
+            <span class="nav-label">Caja</span>
+        </a>
+    </nav>
+
+    <div class="px-3 pt-4 border-t border-surface-container space-y-0.5 shrink-0">
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">manage_accounts</span>
+            <span class="nav-label">Usuarios</span>
+        </a>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">settings</span>
+            <span class="nav-label">Configuración</span>
+        </a>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 hover:text-red-500">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">logout</span>
+            <span class="nav-label">Cerrar Sesión</span>
+        </a>
+    </div>
+</aside>
+
+<!-- TOP NAV -->
+<header id="header" class="fixed top-0 right-0 h-14 z-40 glass border-b border-surface-container flex items-center justify-between px-5 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
+    <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant lg:hidden">
+            <span class="material-symbols-outlined text-[22px]">menu</span>
+        </button>
+        <div class="hidden sm:flex items-center gap-2 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-base text-primary" style="font-variation-settings:'FILL' 1">home</span>
+            <span class="text-outline">/</span>
+            <span class="font-semibold text-on-surface">Citas</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-full text-xs font-semibold text-on-surface-variant">
+            <span class="w-2 h-2 bg-green-500 rounded-full live-dot inline-block"></span>
+            <span id="appt-today-count">8</span> citas hoy
+        </div>
+        <button onclick="openNewApptModal()" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all">
+            <span class="material-symbols-outlined text-base">add</span>
+            Nueva Cita
+        </button>
+        <button class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant relative">
+            <span class="material-symbols-outlined text-[22px]">notifications</span>
+            <span class="notif-dot absolute top-1 right-1 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+        </button>
+        <div class="h-7 w-px bg-surface-container hidden sm:block"></div>
+        <button class="flex items-center gap-2.5 hover:bg-surface-container px-2 py-1.5 rounded-xl transition-colors group">
+            <div class="text-right hidden sm:block">
+                <p class="text-xs font-bold text-on-surface leading-none group-hover:text-primary">Dr. Roberto Smith</p>
+                <p class="text-[10px] text-outline font-medium mt-0.5">Optometrista</p>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white font-bold text-sm shrink-0">R</div>
+        </button>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main id="main-content" class="pt-14 min-h-screen sidebar-transition lg:ml-64 ml-0 bg-surface overflow-x-hidden">
+
+    <!-- Page header -->
+    <div class="border-b border-surface-container bg-white px-5 md:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 fade-up">
+        <div>
+            <h1 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Agenda de Citas</h1>
+            <p id="current-date-label" class="text-xs text-outline mt-0.5"></p>
+        </div>
+        <div class="flex items-center gap-2">
+            <!-- View switcher -->
+            <div class="flex bg-surface-container-low rounded-xl p-1 gap-1">
+                <button id="view-day"  class="view-btn active px-3 py-1.5 rounded-lg text-xs font-bold" onclick="setView('day')">Día</button>
+                <button id="view-week" class="view-btn px-3 py-1.5 rounded-lg text-xs font-bold" onclick="setView('week')">Semana</button>
+                <button id="view-list" class="view-btn px-3 py-1.5 rounded-lg text-xs font-bold" onclick="setView('list')">Lista</button>
+            </div>
+            <!-- Date navigation -->
+            <button onclick="navigateDate(-1)" class="p-2 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+            </button>
+            <button onclick="goToday()" class="px-3 py-1.5 bg-surface-container text-xs font-bold rounded-lg hover:bg-primary hover:text-white transition-all">Hoy</button>
+            <button onclick="navigateDate(1)" class="p-2 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 px-5 md:px-8 py-4 fade-up">
+        <div class="bg-white rounded-xl border border-surface-container p-3 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings:'FILL' 1">event_available</span>
+            </div>
+            <div>
+                <p class="text-xl font-extrabold font-headline text-on-surface" id="kpi-confirmadas">5</p>
+                <p class="text-[10px] text-outline">Confirmadas</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-surface-container p-3 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-amber-600 text-lg" style="font-variation-settings:'FILL' 1">hourglass_top</span>
+            </div>
+            <div>
+                <p class="text-xl font-extrabold font-headline text-on-surface" id="kpi-pendientes">2</p>
+                <p class="text-[10px] text-outline">Pendientes</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-surface-container p-3 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-blue-600 text-lg" style="font-variation-settings:'FILL' 1">done_all</span>
+            </div>
+            <div>
+                <p class="text-xl font-extrabold font-headline text-on-surface" id="kpi-completadas">1</p>
+                <p class="text-[10px] text-outline">Completadas</p>
+            </div>
+        </div>
+        <div class="bg-white rounded-xl border border-surface-container p-3 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-red-500 text-lg" style="font-variation-settings:'FILL' 1">event_busy</span>
+            </div>
+            <div>
+                <p class="text-xl font-extrabold font-headline text-on-surface" id="kpi-canceladas">0</p>
+                <p class="text-[10px] text-outline">Canceladas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content area -->
+    <div class="px-5 md:px-8 pb-10 flex flex-col lg:flex-row gap-5">
+
+        <!-- LEFT: Calendar + Capacity -->
+        <aside class="w-full lg:w-64 shrink-0 space-y-4">
+            <!-- Mini Calendar -->
+            <div class="bg-white rounded-2xl border border-surface-container p-4 fade-up">
+                <div class="flex items-center justify-between mb-3">
+                    <button onclick="prevMonth()" class="p-1 hover:bg-surface-container rounded-lg transition-colors">
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">chevron_left</span>
+                    </button>
+                    <p id="mini-cal-label" class="text-sm font-bold text-on-surface"></p>
+                    <button onclick="nextMonth()" class="p-1 hover:bg-surface-container rounded-lg transition-colors">
+                        <span class="material-symbols-outlined text-base text-on-surface-variant">chevron_right</span>
+                    </button>
+                </div>
+                <!-- Day headers -->
+                <div class="grid grid-cols-7 mb-1">
+                    <div class="text-[10px] font-bold text-outline text-center py-1">D</div>
+                    <div class="text-[10px] font-bold text-outline text-center py-1">L</div>
+                    <div class="text-[10px] font-bold text-outline text-center py-1">M</div>
+                    <div class="text-[10px] font-bold text-outline text-center py-1">X</div>
+                    <div class="text-[10px] font-bold text-outline text-center py-1">J</div>
+                    <div class="text-[10px] font-bold text-outline text-center py-1">V</div>
+                    <div class="text-[10px] font-bold text-outline text-center py-1">S</div>
+                </div>
+                <div id="mini-cal-grid" class="grid grid-cols-7 gap-0.5"></div>
+            </div>
+
+            <!-- Doctor filter -->
+            <div class="bg-white rounded-2xl border border-surface-container p-4 fade-up">
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Optometristas</p>
+                <div class="space-y-2" id="doctor-filters">
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input type="checkbox" checked class="rounded accent-primary" onchange="filterDoctor(this, 1)">
+                        <div class="w-2.5 h-2.5 rounded-full bg-primary shrink-0"></div>
+                        <span class="text-xs font-medium text-on-surface group-hover:text-primary transition-colors">Dr. Roberto Smith</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input type="checkbox" checked class="rounded accent-teal-500" onchange="filterDoctor(this, 2)">
+                        <div class="w-2.5 h-2.5 rounded-full bg-teal-500 shrink-0"></div>
+                        <span class="text-xs font-medium text-on-surface group-hover:text-teal-600 transition-colors">Dra. Ana Castillo</span>
+                    </label>
+                    <label class="flex items-center gap-2.5 cursor-pointer group">
+                        <input type="checkbox" checked class="rounded accent-violet-500" onchange="filterDoctor(this, 3)">
+                        <div class="w-2.5 h-2.5 rounded-full bg-violet-500 shrink-0"></div>
+                        <span class="text-xs font-medium text-on-surface group-hover:text-violet-600 transition-colors">Dr. Miguel Torres</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Daily capacity -->
+            <div class="bg-white rounded-2xl border border-surface-container p-4 fade-up">
+                <p class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-3">Capacidad del Día</p>
+                <div class="space-y-2.5">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-on-surface-variant font-medium">Dr. Smith</span>
+                            <span class="font-bold text-primary">5/8</span>
+                        </div>
+                        <div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full cap-bar" style="width:62.5%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-on-surface-variant font-medium">Dra. Castillo</span>
+                            <span class="font-bold text-teal-600">3/8</span>
+                        </div>
+                        <div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                            <div class="h-full bg-teal-500 rounded-full cap-bar" style="width:37.5%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-on-surface-variant font-medium">Dr. Torres</span>
+                            <span class="font-bold text-violet-600">2/8</span>
+                        </div>
+                        <div class="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                            <div class="h-full bg-violet-500 rounded-full cap-bar" style="width:25%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT: Agenda View -->
+        <section class="flex-1 min-w-0">
+
+            <!-- DAY VIEW -->
+            <div id="view-panel-day" class="bg-white rounded-2xl border border-surface-container overflow-hidden fade-up">
+                <div class="px-5 py-3 border-b border-surface-container flex items-center justify-between">
+                    <h2 id="day-view-label" class="font-headline font-bold text-base text-on-surface"></h2>
+                    <span class="text-xs text-outline" id="day-appt-count"></span>
+                </div>
+                <div class="overflow-y-auto max-h-[600px]">
+                    <div class="flex">
+                        <!-- Time column -->
+                        <div class="w-14 shrink-0 border-r border-surface-container">
+                            <div class="time-col">
+                                <!-- Generated by JS -->
+                            </div>
+                        </div>
+                        <!-- Events column -->
+                        <div class="flex-1 relative" id="day-events-col">
+                            <div class="slot-col">
+                                <!-- Slots + events rendered by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEEK VIEW -->
+            <div id="view-panel-week" class="hidden bg-white rounded-2xl border border-surface-container overflow-hidden fade-up">
+                <div class="overflow-x-auto">
+                    <div id="week-grid" class="min-w-[700px]">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIST VIEW -->
+            <div id="view-panel-list" class="hidden space-y-3 fade-up">
+                <!-- List of appointments -->
+                <div id="list-view-container" class="space-y-2">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<!-- MODAL: Nueva Cita -->
+<div id="modal-new-appt" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-bd absolute inset-0" onclick="closeNewApptModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg scale-in overflow-hidden">
+        <div class="p-5 border-b border-surface-container flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
-                    <img src="https://lh3.googleusercontent.com/aida/ADBb0ugSC5blHPIwgGwZjPWIWYKN0Xh3oRWm2HMrIOYbyO1ELYOAOHSJKK3nIr1RfrcJdvnU2aZ66brRxABuKt3KJ0vbUPkKtJV8MGGUEypFiYKplf7bwqcnoiNYbqnr88gS5DCk4Awi-f5BR2mO1YpG93VlAgXnrUiCPfBhSNdrxCnnVelEjghrQyvxKguJpm6GQPjtPYQaRgXHAB4etIBqs5pRdbFBp8ae201C2njkXv_gEG1RrUVnuL_yG6X_H2__k-NSZjsbC21cSA" alt="Dr. Lentes Ópticas" class="w-full h-full object-cover">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-base" style="font-variation-settings:'FILL' 1">calendar_add_on</span>
                 </div>
-                <div class="logo-text overflow-hidden whitespace-nowrap">
-                    <h1 class="text-xl font-bold bg-gradient-to-br from-sky-700 to-sky-400 bg-clip-text text-transparent font-headline leading-none">Dr. Lentes</h1>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Ópticas</p>
-                </div>
+                <h2 class="font-headline font-extrabold text-base text-on-surface">Nueva Cita</h2>
             </div>
-        </div>
-
-        <!-- Scrollable Navigation -->
-        <nav class="flex-1 space-y-1 px-4 overflow-y-auto">
-            <a href="dashboard.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
-                <span class="nav-label whitespace-nowrap">Tablero</span>
-            </a>
-            <a href="ventas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="payments">payments</span>
-                <span class="nav-label whitespace-nowrap">Ventas</span>
-            </a>
-            <a href="inventario.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="inventory_2">inventory_2</span>
-                <span class="nav-label whitespace-nowrap">Inventario</span>
-            </a>
-            <a href="historias-clinicas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="clinical_notes">clinical_notes</span>
-                <span class="nav-label whitespace-nowrap">Historias Clínicas</span>
-            </a>
-            <a href="citas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
-                <span class="nav-label whitespace-nowrap">Citas</span>
-            </a>
-        </nav>
-
-        <!-- Footer actions in Sidebar -->
-        <div class="px-4 mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 space-y-1">
-            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
-                <span class="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
-                <span class="nav-label whitespace-nowrap">Configuración</span>
-            </a>
-            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
-                <span class="material-symbols-outlined shrink-0" data-icon="logout">logout</span>
-                <span class="nav-label whitespace-nowrap">Cerrar Sesión</span>
-            </a>
-        </div>
-    </aside>
-
-        
-    <!-- TopNavBar -->
-    <header id="header" class="fixed top-0 right-0 h-16 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
-        <div class="flex items-center gap-4 w-full sm:w-auto flex-1">
-            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 lg:hidden">
-                <span class="material-symbols-outlined" data-icon="menu">menu</span>
-            </button>
-            <div class="relative flex-1 max-w-md hidden sm:block">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" data-icon="search">search</span>
-                <input type="text" placeholder="Buscar pacientes, registros o inventario..." class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none">
-            </div>
-            <!-- Mobile search button -->
-            <button class="sm:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 ml-auto">
-                <span class="material-symbols-outlined">search</span>
+            <button onclick="closeNewApptModal()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-4">
-                <button class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors relative hidden sm:block" title="Notificaciones">
-                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-                    <span class="absolute top-0 right-0 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+
+        <div class="p-5 space-y-4">
+            <!-- Patient -->
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Paciente</label>
+                <select id="appt-patient" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                    <option value="">— Seleccionar paciente —</option>
+                    <option value="1">Carlos R. Mendoza — V-12345678</option>
+                    <option value="2">María Fernanda Ruiz — V-23456789</option>
+                    <option value="3">Lucía Gómez — V-34567890</option>
+                    <option value="4">José Alberto Torres — V-45678901</option>
+                    <option value="5">Ana María Castillo — V-56789012</option>
+                </select>
+            </div>
+
+            <!-- Doctor + Type row -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Optometrista</label>
+                    <select id="appt-doctor" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                        <option value="1">Dr. Roberto Smith</option>
+                        <option value="2">Dra. Ana Castillo</option>
+                        <option value="3">Dr. Miguel Torres</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Tipo</label>
+                    <select id="appt-type" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                        <option>Chequeo general</option>
+                        <option>Control</option>
+                        <option>Adaptación de lentes</option>
+                        <option>Urgencia</option>
+                        <option>Primera vez</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Date + Time row -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Fecha</label>
+                    <input type="date" id="appt-date" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Hora</label>
+                    <select id="appt-time" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                        <option>08:00 AM</option><option>08:30 AM</option><option>09:00 AM</option>
+                        <option>09:30 AM</option><option>10:00 AM</option><option>10:30 AM</option>
+                        <option>11:00 AM</option><option>11:30 AM</option><option>02:00 PM</option>
+                        <option>02:30 PM</option><option>03:00 PM</option><option>03:30 PM</option>
+                        <option>04:00 PM</option><option>04:30 PM</option><option>05:00 PM</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Duration -->
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Duración</label>
+                <div class="flex gap-2">
+                    <button onclick="setDuration(30, this)" class="flex-1 py-2 rounded-xl bg-primary text-white text-xs font-bold transition-all active:scale-95">30 min</button>
+                    <button onclick="setDuration(45, this)" class="flex-1 py-2 rounded-xl bg-surface-container text-on-surface text-xs font-bold transition-all active:scale-95">45 min</button>
+                    <button onclick="setDuration(60, this)" class="flex-1 py-2 rounded-xl bg-surface-container text-on-surface text-xs font-bold transition-all active:scale-95">60 min</button>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Notas (opcional)</label>
+                <textarea id="appt-notes" rows="2" placeholder="Observaciones, indicaciones especiales…"
+                          class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-none"></textarea>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex gap-2 pt-1">
+                <button onclick="closeNewApptModal()" class="flex-1 py-2.5 rounded-xl bg-surface-container text-on-surface text-sm font-bold hover:bg-surface-dim transition-all">Cancelar</button>
+                <button onclick="saveNewAppt()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:translate-y-0">
+                    Agendar Cita
                 </button>
             </div>
-            <div class="h-8 w-[1px] bg-slate-100 hidden sm:block"></div>
-            <div class="flex items-center gap-3 cursor-pointer group">
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-on-surface leading-none group-hover:text-primary transition-colors">Dr. Roberto Smith</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Optometrista</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0">R</div>
-            </div>
         </div>
-    </header>
-
-        <main id="main-content" class="pt-16 min-h-screen pb-20 sidebar-transition lg:ml-64 ml-0 overflow-x-hidden">
-            
-<!-- Header Controls / Date Selector -->
-<section class="mb-8">
-<div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
-<div>
-<h2 class="text-2xl font-bold headline text-on-surface tracking-tight">Agenda Operativa</h2>
-<p class="text-on-surface-variant text-sm">Gestiona las citas y flujo de pacientes del día.</p>
-</div>
-<div class="glass-card p-1 rounded-full flex items-center shadow-sm border border-white/20">
-<button class="px-5 py-2 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Ayer</button>
-<button class="px-6 py-2 text-sm font-bold bg-gradient-to-br from-[#00658d] to-[#00aeef] text-white rounded-full shadow-md">Hoy</button>
-<button class="px-5 py-2 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">Mañana</button>
-<div class="w-[1px] h-4 bg-outline-variant mx-2"></div>
-<button class="p-2 text-primary flex items-center justify-center">
-<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
-</button>
-</div>
-</div>
-</section>
-<!-- Kanban Board Layout -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-<!-- Column 1: Dr. Roberto -->
-<div class="flex flex-col gap-4">
-<div class="flex items-center justify-between px-2">
-<div class="flex items-center gap-3">
-<div class="w-2 h-8 bg-primary rounded-full"></div>
-<h3 class="text-lg font-bold headline">Dr. Roberto</h3>
-</div>
-<span class="bg-surface-container-high px-3 py-1 rounded-full text-xs font-bold text-on-surface-variant">4 Citas</span>
-</div>
-<div class="space-y-4">
-<!-- Regular Evaluation Card -->
-<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-primary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-<div class="absolute top-0 right-0 p-3">
-<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" data-icon="more_vert">more_vert</span>
-</div>
-<div class="flex items-center gap-2 mb-3">
-<span class="text-primary-container text-[10px] font-bold uppercase tracking-widest bg-primary-container/10 px-2 py-0.5 rounded">Evaluación Regular</span>
-<span class="text-slate-400 text-xs font-medium">09:00 AM</span>
-</div>
-<h4 class="text-on-surface font-bold text-lg mb-1">Carlos Mendoza</h4>
-<div class="flex items-center gap-2 text-on-surface-variant text-sm">
-<span class="material-symbols-outlined text-sm" data-icon="description">description</span>
-<span>Examen de refracción anual</span>
-</div>
-</div>
-<!-- Urgent Card -->
-<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-error relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-<div class="absolute top-0 right-0 p-3">
-<span class="material-symbols-outlined text-slate-300 group-hover:text-error transition-colors" data-icon="priority_high">priority_high</span>
-</div>
-<div class="flex items-center gap-2 mb-3">
-<span class="text-error text-[10px] font-bold uppercase tracking-widest bg-error/10 px-2 py-0.5 rounded">Urgencia Clínica</span>
-<span class="text-slate-400 text-xs font-medium">10:30 AM</span>
-</div>
-<h4 class="text-on-surface font-bold text-lg mb-1">Elena Rivas</h4>
-<div class="flex items-center gap-2 text-on-surface-variant text-sm">
-<span class="material-symbols-outlined text-sm" data-icon="medical_services">medical_services</span>
-<span>Cuerpo extraño en ojo derecho</span>
-</div>
-</div>
-<!-- Delivery Card -->
-<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-tertiary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-<div class="flex items-center gap-2 mb-3">
-<span class="text-tertiary-container text-[10px] font-bold uppercase tracking-widest bg-tertiary-container/10 px-2 py-0.5 rounded">Entrega de Lentes</span>
-<span class="text-slate-400 text-xs font-medium">11:45 AM</span>
-</div>
-<h4 class="text-on-surface font-bold text-lg mb-1">Jorge Batlle</h4>
-<div class="flex items-center gap-2 text-on-surface-variant text-sm">
-<span class="material-symbols-outlined text-sm" data-icon="eyeglasses">eyeglasses</span>
-<span>Montura Ray-Ban + Cristales Filtro Azul</span>
-</div>
-</div>
-<!-- Empty Slot -->
-<div class="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-slate-400 hover:border-primary-container hover:text-primary-container transition-all cursor-pointer">
-<span class="material-symbols-outlined mb-2" data-icon="add_circle">add_circle</span>
-<span class="text-xs font-bold uppercase tracking-wider">Asignar Cita</span>
-</div>
-</div>
-</div>
-<!-- Column 2: Dra. Sara -->
-<div class="flex flex-col gap-4">
-<div class="flex items-center justify-between px-2">
-<div class="flex items-center gap-3">
-<div class="w-2 h-8 bg-[#00aeef] rounded-full"></div>
-<h3 class="text-lg font-bold headline">Dra. Sara</h3>
-</div>
-<span class="bg-surface-container-high px-3 py-1 rounded-full text-xs font-bold text-on-surface-variant">3 Citas</span>
-</div>
-<div class="space-y-4">
-<!-- Delivery Card -->
-<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-tertiary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-<div class="flex items-center gap-2 mb-3">
-<span class="text-tertiary-container text-[10px] font-bold uppercase tracking-widest bg-tertiary-container/10 px-2 py-0.5 rounded">Entrega de Lentes</span>
-<span class="text-slate-400 text-xs font-medium">09:15 AM</span>
-</div>
-<h4 class="text-on-surface font-bold text-lg mb-1">Lucía Fernández</h4>
-<div class="flex items-center gap-2 text-on-surface-variant text-sm">
-<span class="material-symbols-outlined text-sm" data-icon="local_shipping">local_shipping</span>
-<span>Lentes de contacto multifocales</span>
-</div>
-</div>
-<!-- Regular Evaluation Card -->
-<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-primary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-<div class="flex items-center gap-2 mb-3">
-<span class="text-primary-container text-[10px] font-bold uppercase tracking-widest bg-primary-container/10 px-2 py-0.5 rounded">Evaluación Regular</span>
-<span class="text-slate-400 text-xs font-medium">10:00 AM</span>
-</div>
-<h4 class="text-on-surface font-bold text-lg mb-1">Mario Quintana</h4>
-<div class="flex items-center gap-2 text-on-surface-variant text-sm">
-<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
-<span>Seguimiento post-operatorio</span>
-</div>
-</div>
-<!-- Regular Evaluation Card -->
-<div class="glass-card rounded-xl p-5 shadow-sm border-l-4 border-primary-container relative overflow-hidden group hover:scale-[1.02] transition-all duration-300">
-<div class="flex items-center gap-2 mb-3">
-<span class="text-primary-container text-[10px] font-bold uppercase tracking-widest bg-primary-container/10 px-2 py-0.5 rounded">Evaluación Regular</span>
-<span class="text-slate-400 text-xs font-medium">12:30 PM</span>
-</div>
-<h4 class="text-on-surface font-bold text-lg mb-1">Sofía Rossi</h4>
-<div class="flex items-center gap-2 text-on-surface-variant text-sm">
-<span class="material-symbols-outlined text-sm" data-icon="child_care">child_care</span>
-<span>Tamizaje visual pediátrico</span>
-</div>
-</div>
-</div>
-</div>
-</div>
-<!-- Asymmetric Stats/Info Section -->
-<section class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="md:col-span-2 glass-card p-6 rounded-2xl flex items-center gap-6 overflow-hidden">
-<div class="flex-1">
-<h3 class="headline font-bold text-xl mb-2">Capacidad Operativa</h3>
-<p class="text-on-surface-variant text-sm mb-4">La clínica está operando al 85% de su capacidad hoy.</p>
-<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-gradient-to-r from-primary to-primary-container w-[85%]"></div>
-</div>
-</div>
-<div class="hidden sm:block w-32 h-32 relative">
-<img alt="Clinical environment" class="w-full h-full object-cover rounded-xl" data-alt="Close-up of high-tech optometry diagnostic equipment in a clean, brightly lit modern clinic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATLrAPvYMUWcqP5drpwGzMtydoX1Ba9mtift-wEqq5zRcUqPg1jDuAGDh7J8nfn8T-OgB7gUusCKOz7PMRPlEthBibK2V31-KpupuKwGEPv5bMoL_8pUDW1KUVuQ3yJJIHQRYsW29t0zEVbeCg4oP6pM-CMjPm3OHe2ebc5IfKgM1RYVfLwo3uk2bhXMZxe15J2Q0WostEFyPnFjuILr34j7mU3Ak426AGMaZCMd8nB_SINhqyJMNwwnL_uYC8KRo2ZizE0TJfJ488"/>
-</div>
-</div>
-<div class="glass-card p-6 rounded-2xl flex flex-col justify-center items-center text-center bg-gradient-to-br from-[#00658d]/5 to-[#00aeef]/5 border-none">
-<span class="material-symbols-outlined text-4xl text-primary mb-2" data-icon="pending_actions">pending_actions</span>
-<div class="text-3xl font-black headline text-primary">2</div>
-<div class="text-xs font-bold uppercase text-on-surface-variant tracking-tighter">Urgencias Pendientes</div>
-</div>
-</section>
-
-        </main>
     </div>
+</div>
+
+<!-- MODAL: Cita Detail -->
+<div id="modal-appt-detail" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-bd absolute inset-0" onclick="closeApptDetail()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm scale-in">
+        <div class="p-5 border-b border-surface-container flex items-center justify-between">
+            <h2 class="font-headline font-extrabold text-base text-on-surface" id="detail-title">Detalle de Cita</h2>
+            <button onclick="closeApptDetail()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <div id="detail-body" class="p-5 space-y-3"></div>
+    </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════ */
+const DOCTORS = {
+    1: { name:'Dr. Roberto Smith',  color:'#00658d', bg:'#e0f2fe' },
+    2: { name:'Dra. Ana Castillo',  color:'#0d9488', bg:'#ccfbf1' },
+    3: { name:'Dr. Miguel Torres',  color:'#7c3aed', bg:'#ede9fe' },
+};
+
+let APPOINTMENTS = [
+    { id:1,  patient:'Carlos R. Mendoza',   doctor:1, type:'Chequeo general',       date:'2026-06-14', time:'08:00', duration:30, status:'completada',  notes:'Control anual' },
+    { id:2,  patient:'María F. Ruiz',       doctor:1, type:'Adaptación de lentes',  date:'2026-06-14', time:'09:00', duration:45, status:'en_curso',     notes:'' },
+    { id:3,  patient:'Lucía Gómez',         doctor:2, type:'Primera vez',           date:'2026-06-14', time:'09:30', duration:60, status:'confirmada',   notes:'Derivación de oftalmólogo' },
+    { id:4,  patient:'José Torres',         doctor:1, type:'Control',               date:'2026-06-14', time:'11:00', duration:30, status:'agendada',     notes:'' },
+    { id:5,  patient:'Ana Castillo',        doctor:3, type:'Chequeo general',       date:'2026-06-14', time:'10:00', duration:30, status:'confirmada',   notes:'' },
+    { id:6,  patient:'Pedro Martínez',      doctor:2, type:'Urgencia',              date:'2026-06-14', time:'02:00', duration:30, status:'agendada',     notes:'Dolor ocular' },
+    { id:7,  patient:'Carmen López',        doctor:3, type:'Adaptación de lentes',  date:'2026-06-14', time:'03:00', duration:45, status:'confirmada',   notes:'' },
+    { id:8,  patient:'Roberto Díaz',        doctor:1, type:'Control',               date:'2026-06-15', time:'09:00', duration:30, status:'agendada',     notes:'' },
+    { id:9,  patient:'Sofía Vargas',        doctor:2, type:'Primera vez',           date:'2026-06-16', time:'10:30', duration:60, status:'agendada',     notes:'' },
+];
+
+let apptIdCounter = 10;
+let currentView = 'day';
+let currentDate = new Date('2026-06-14');
+let miniCalDate = new Date('2026-06-14');
+let activeDoctors = new Set([1,2,3]);
+let selectedDuration = 30;
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    const today = new Date('2026-06-14');
+    document.getElementById('appt-date').valueAsDate = today;
+    renderMiniCal();
+    renderCurrentView();
+    updateDateLabel();
+});
+
+/* ═══════════════════════════════════════════════════
+   VIEW MANAGEMENT
+═══════════════════════════════════════════════════ */
+function setView(v) {
+    currentView = v;
+    ['day','week','list'].forEach(name => {
+        document.getElementById(`view-panel-${name}`).classList.add('hidden');
+        document.getElementById(`view-${name}`).classList.remove('active');
+    });
+    document.getElementById(`view-panel-${v}`).classList.remove('hidden');
+    document.getElementById(`view-${v}`).classList.add('active');
+    renderCurrentView();
+}
+
+function renderCurrentView() {
+    if (currentView === 'day')  renderDayView();
+    if (currentView === 'week') renderWeekView();
+    if (currentView === 'list') renderListView();
+}
+
+function updateDateLabel() {
+    const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
+    const label = currentDate.toLocaleDateString('es-MX', opts);
+    document.getElementById('current-date-label').textContent = label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+/* ═══════════════════════════════════════════════════
+   DAY VIEW
+═══════════════════════════════════════════════════ */
+const HOURS = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30',
+               '12:00','12:30','01:00','01:30','02:00','02:30','03:00','03:30','04:00','04:30'];
+
+function renderDayView() {
+    const dateStr = fmtDate(currentDate);
+    const dayAppts = APPOINTMENTS.filter(a => a.date === dateStr && activeDoctors.has(a.doctor));
+
+    document.getElementById('day-view-label').textContent = currentDate.toLocaleDateString('es-MX',{weekday:'long',month:'long',day:'numeric'});
+    document.getElementById('day-appt-count').textContent = `${dayAppts.length} citas`;
+    updateKPIs(dayAppts);
+
+    // Time column
+    const timeCol = document.querySelector('.time-col');
+    timeCol.innerHTML = HOURS.map(h => `
+        <div class="flex items-start justify-center pt-1 border-b border-surface-container/50">
+            <span class="text-[10px] font-semibold text-outline">${h}</span>
+        </div>`).join('');
+
+    // Slot column
+    const eventsCol = document.querySelector('.slot-col');
+    eventsCol.innerHTML = HOURS.map((h, i) => {
+        const appts = dayAppts.filter(a => a.time === h || (a.time === '12:00' && h === '12:00') || (a.time.includes('PM') && false));
+        const apptMatch = dayAppts.filter(a => a.time === h);
+        return `
+            <div class="border-b border-surface-container/50 relative px-1 py-0.5 hover:bg-surface-container-low/30 transition-colors" style="cursor:default">
+                ${apptMatch.map(a => `
+                    <div onclick="openApptDetail(${a.id})" class="cita-block rounded-r-lg px-2 py-1 text-[11px] mb-0.5 ${getStatusClass(a.status)}">
+                        <div class="flex items-center justify-between gap-1">
+                            <span class="font-bold truncate">${a.patient}</span>
+                            <span class="shrink-0 text-[9px] font-black px-1.5 py-0.5 rounded-full badge-${a.status} uppercase">${a.status.replace('_',' ')}</span>
+                        </div>
+                        <div class="flex items-center gap-1 mt-0.5 opacity-80">
+                            <span class="material-symbols-outlined text-[12px]">person</span>
+                            <span>${DOCTORS[a.doctor]?.name?.split(' ')[0]+' '+DOCTORS[a.doctor]?.name?.split(' ')[1]}</span>
+                            <span class="ml-auto">${a.duration}min</span>
+                        </div>
+                    </div>`).join('')}
+            </div>`;
+    }).join('');
+}
+
+function getStatusClass(status) {
+    return `status-${status}`;
+}
+
+/* ═══════════════════════════════════════════════════
+   WEEK VIEW
+═══════════════════════════════════════════════════ */
+function renderWeekView() {
+    const monday = getMonday(currentDate);
+    const days = Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(d.getDate()+i); return d; });
+    const grid = document.getElementById('week-grid');
+
+    const headerCells = days.map(d => {
+        const isToday = fmtDate(d) === '2026-06-14';
+        const dayAppts = APPOINTMENTS.filter(a => a.date === fmtDate(d)).length;
+        return `<div class="border-r border-surface-container last:border-none p-2 text-center ${isToday ? 'bg-primary/5':''}" style="min-width:120px">
+            <p class="text-[10px] font-bold text-outline uppercase">${d.toLocaleDateString('es-MX',{weekday:'short'})}</p>
+            <p class="text-lg font-extrabold font-headline ${isToday ? 'text-primary':'text-on-surface'}">${d.getDate()}</p>
+            ${dayAppts > 0 ? `<span class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">${dayAppts}</span>` : ''}
+        </div>`;
+    }).join('');
+
+    const rows = HOURS.slice(0,12).map(h => {
+        const cells = days.map(d => {
+            const appts = APPOINTMENTS.filter(a => a.date === fmtDate(d) && a.time === h && activeDoctors.has(a.doctor));
+            return `<div class="border-r border-surface-container last:border-none border-t border-surface-container/50 p-1 min-h-[52px] hover:bg-surface-container-low/30" style="min-width:120px">
+                ${appts.map(a => `
+                    <div onclick="openApptDetail(${a.id})" class="cita-block rounded-lg px-1.5 py-1 text-[10px] mb-0.5 ${getStatusClass(a.status)} cursor-pointer">
+                        <p class="font-bold truncate">${a.patient.split(' ')[0]}</p>
+                        <p class="opacity-70">${a.type.substring(0,12)}</p>
+                    </div>`).join('')}
+            </div>`;
+        }).join('');
+        return `<div class="flex">
+            <div class="w-14 shrink-0 border-r border-surface-container border-t border-surface-container/50 flex items-start justify-center pt-1">
+                <span class="text-[10px] font-semibold text-outline">${h}</span>
+            </div>
+            ${cells}
+        </div>`;
+    }).join('');
+
+    grid.innerHTML = `
+        <div class="flex border-b border-surface-container bg-surface-container-low">
+            <div class="w-14 shrink-0 border-r border-surface-container p-2"></div>
+            ${headerCells}
+        </div>
+        ${rows}`;
+}
+
+/* ═══════════════════════════════════════════════════
+   LIST VIEW
+═══════════════════════════════════════════════════ */
+function renderListView() {
+    const container = document.getElementById('list-view-container');
+    const sorted = [...APPOINTMENTS]
+        .filter(a => activeDoctors.has(a.doctor))
+        .sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+
+    // Group by date
+    const groups = {};
+    sorted.forEach(a => { (groups[a.date] = groups[a.date] || []).push(a); });
+
+    container.innerHTML = Object.entries(groups).map(([date, appts]) => {
+        const d = new Date(date+'T12:00:00');
+        const label = d.toLocaleDateString('es-MX',{weekday:'long',month:'long',day:'numeric'});
+        return `
+        <div class="bg-white rounded-2xl border border-surface-container overflow-hidden">
+            <div class="px-5 py-2.5 bg-surface-container-low border-b border-surface-container">
+                <p class="text-xs font-extrabold text-primary uppercase tracking-wider">${label.charAt(0).toUpperCase()+label.slice(1)}</p>
+            </div>
+            <div class="divide-y divide-surface-container">
+                ${appts.map(a => `
+                    <div onclick="openApptDetail(${a.id})" class="px-5 py-3 flex items-center gap-4 hover:bg-surface-container-low/50 transition-colors cursor-pointer">
+                        <div class="w-12 text-center shrink-0">
+                            <p class="text-sm font-extrabold text-primary">${a.time}</p>
+                            <p class="text-[10px] text-outline">${a.duration}min</p>
+                        </div>
+                        <div class="w-1 self-stretch rounded-full shrink-0" style="background:${DOCTORS[a.doctor]?.color}"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-on-surface">${a.patient}</p>
+                            <p class="text-xs text-outline mt-0.5">${a.type} · ${DOCTORS[a.doctor]?.name}</p>
+                        </div>
+                        <span class="badge-${a.status} text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0">${a.status.replace('_',' ')}</span>
+                        <span class="material-symbols-outlined text-outline text-base">chevron_right</span>
+                    </div>`).join('')}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   MINI CALENDAR
+═══════════════════════════════════════════════════ */
+function renderMiniCal() {
+    const y = miniCalDate.getFullYear(), m = miniCalDate.getMonth();
+    document.getElementById('mini-cal-label').textContent =
+        miniCalDate.toLocaleDateString('es-MX',{month:'long',year:'numeric'}).replace(/^\w/, c => c.toUpperCase());
+
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m+1, 0).getDate();
+    const apptDates = new Set(APPOINTMENTS.map(a => a.date));
+
+    let html = '';
+    for (let i=0; i<firstDay; i++) html += `<div></div>`;
+    for (let d=1; d<=daysInMonth; d++) {
+        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = dateStr === '2026-06-14';
+        const isCurrent = dateStr === fmtDate(currentDate);
+        const hasAppt = apptDates.has(dateStr);
+        html += `<button onclick="selectDay('${dateStr}')"
+            class="cal-day w-7 h-7 rounded-full text-[11px] font-bold mx-auto flex flex-col items-center justify-center
+            ${isToday ? 'today' : ''} ${isCurrent && !isToday ? 'bg-primary/10 text-primary' : 'text-on-surface-variant'}">
+            ${d}
+            ${hasAppt && !isToday ? '<span class="w-1 h-1 rounded-full bg-primary-container block -mt-0.5"></span>' : ''}
+        </button>`;
+    }
+    document.getElementById('mini-cal-grid').innerHTML = html;
+}
+
+function prevMonth() { miniCalDate.setMonth(miniCalDate.getMonth()-1); renderMiniCal(); }
+function nextMonth() { miniCalDate.setMonth(miniCalDate.getMonth()+1); renderMiniCal(); }
+
+function selectDay(dateStr) {
+    currentDate = new Date(dateStr+'T12:00:00');
+    miniCalDate = new Date(currentDate);
+    renderMiniCal();
+    updateDateLabel();
+    renderCurrentView();
+}
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════ */
+function navigateDate(delta) {
+    const d = new Date(currentDate);
+    if (currentView === 'week') d.setDate(d.getDate() + delta*7);
+    else d.setDate(d.getDate() + delta);
+    currentDate = d;
+    miniCalDate = new Date(d);
+    renderMiniCal();
+    updateDateLabel();
+    renderCurrentView();
+}
+
+function goToday() {
+    currentDate = new Date('2026-06-14');
+    miniCalDate = new Date(currentDate);
+    renderMiniCal();
+    updateDateLabel();
+    renderCurrentView();
+}
+
+/* ═══════════════════════════════════════════════════
+   DOCTOR FILTER
+═══════════════════════════════════════════════════ */
+function filterDoctor(checkbox, doctorId) {
+    if (checkbox.checked) activeDoctors.add(doctorId);
+    else activeDoctors.delete(doctorId);
+    renderCurrentView();
+}
+
+/* ═══════════════════════════════════════════════════
+   KPI UPDATE
+═══════════════════════════════════════════════════ */
+function updateKPIs(appts) {
+    document.getElementById('kpi-confirmadas').textContent = appts.filter(a=>a.status==='confirmada').length;
+    document.getElementById('kpi-pendientes').textContent  = appts.filter(a=>a.status==='agendada').length;
+    document.getElementById('kpi-completadas').textContent = appts.filter(a=>a.status==='completada').length;
+    document.getElementById('kpi-canceladas').textContent  = appts.filter(a=>a.status==='cancelada').length;
+}
+
+/* ═══════════════════════════════════════════════════
+   APPOINTMENT DETAIL MODAL
+═══════════════════════════════════════════════════ */
+function openApptDetail(id) {
+    const a = APPOINTMENTS.find(ap => ap.id === id);
+    if (!a) return;
+    const doc = DOCTORS[a.doctor];
+    document.getElementById('detail-title').textContent = a.patient;
+    document.getElementById('detail-body').innerHTML = `
+        <div class="grid grid-cols-2 gap-3 text-sm">
+            <div><p class="text-outline text-xs">Tipo</p><p class="font-semibold">${a.type}</p></div>
+            <div><p class="text-outline text-xs">Estado</p>
+                <span class="badge-${a.status} text-[10px] font-black px-2 py-0.5 rounded-full uppercase">${a.status.replace('_',' ')}</span>
+            </div>
+            <div><p class="text-outline text-xs">Fecha</p><p class="font-semibold">${a.date}</p></div>
+            <div><p class="text-outline text-xs">Hora</p><p class="font-semibold">${a.time} (${a.duration}min)</p></div>
+            <div class="col-span-2"><p class="text-outline text-xs">Optometrista</p>
+                <div class="flex items-center gap-2 mt-0.5">
+                    <div class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${doc.color}"></div>
+                    <p class="font-semibold">${doc.name}</p>
+                </div>
+            </div>
+            ${a.notes ? `<div class="col-span-2"><p class="text-outline text-xs">Notas</p><p class="text-sm text-on-surface-variant">${a.notes}</p></div>` : ''}
+        </div>
+        <div class="border-t border-surface-container pt-3 grid grid-cols-3 gap-2">
+            <button onclick="changeStatus(${id},'confirmada');closeApptDetail()" class="py-2 rounded-xl bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 transition-all">Confirmar</button>
+            <button onclick="changeStatus(${id},'completada');closeApptDetail()" class="py-2 rounded-xl bg-blue-50 text-blue-700 text-xs font-bold hover:bg-blue-100 transition-all">Completar</button>
+            <button onclick="changeStatus(${id},'cancelada');closeApptDetail()" class="py-2 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-all">Cancelar</button>
+        </div>`;
+    document.getElementById('modal-appt-detail').classList.remove('hidden');
+}
+
+function closeApptDetail() { document.getElementById('modal-appt-detail').classList.add('hidden'); }
+
+function changeStatus(id, newStatus) {
+    const a = APPOINTMENTS.find(ap => ap.id === id);
+    if (a) a.status = newStatus;
+    renderCurrentView();
+}
+
+/* ═══════════════════════════════════════════════════
+   NEW APPOINTMENT MODAL
+═══════════════════════════════════════════════════ */
+function openNewApptModal() { document.getElementById('modal-new-appt').classList.remove('hidden'); }
+function closeNewApptModal() { document.getElementById('modal-new-appt').classList.add('hidden'); }
+
+function setDuration(mins, btn) {
+    selectedDuration = mins;
+    document.querySelectorAll('#modal-new-appt button[onclick^="setDuration"]').forEach(b => {
+        b.className = 'flex-1 py-2 rounded-xl bg-surface-container text-on-surface text-xs font-bold transition-all active:scale-95';
+    });
+    btn.className = 'flex-1 py-2 rounded-xl bg-primary text-white text-xs font-bold transition-all active:scale-95';
+}
+
+function saveNewAppt() {
+    const patient = document.getElementById('appt-patient');
+    const doctor  = parseInt(document.getElementById('appt-doctor').value);
+    const type    = document.getElementById('appt-type').value;
+    const date    = document.getElementById('appt-date').value;
+    const time    = document.getElementById('appt-time').value.replace(' AM','').replace(' PM','');
+    const notes   = document.getElementById('appt-notes').value;
+
+    if (!patient.value || !date) {
+        alert('Por favor selecciona el paciente y la fecha.');
+        return;
+    }
+
+    APPOINTMENTS.push({
+        id: apptIdCounter++,
+        patient: patient.options[patient.selectedIndex].text.split(' — ')[0],
+        doctor, type, date, time, duration: selectedDuration,
+        status: 'agendada', notes
+    });
+
+    closeNewApptModal();
+    renderCurrentView();
+    renderMiniCal();
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════ */
+function fmtDate(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function getMonday(d) {
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+}
+</script>
+</div>
 </body>
 </html>
