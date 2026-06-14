@@ -9,6 +9,9 @@ import { manejoErrores } from './middleware/manejo-errores'
 import { autenticacionRouter } from './modules/autenticacion/autenticacion.routes'
 import { sucursalesRouter } from './modules/sucursales/sucursales.routes'
 import { usuariosRouter, empleadosRouter } from './modules/usuarios/usuarios.routes'
+import { pacientesRouter } from './modules/pacientes/pacientes.routes'
+import { empresasRouter } from './modules/empresas/empresas.routes'
+import { citasRouter } from './modules/citas/citas.routes'
 
 const app = express()
 
@@ -57,9 +60,10 @@ app.use('/api/auth', autenticacionRouter)
 app.use('/api/sucursales', sucursalesRouter)
 app.use('/api/usuarios', usuariosRouter)
 app.use('/api/empleados', empleadosRouter)
+app.use('/api/pacientes', pacientesRouter)
+app.use('/api/empresas', empresasRouter)
+app.use('/api/citas', citasRouter)
 // TODO: Agregar más routers por módulo:
-// app.use('/api/pacientes', pacientesRouter)
-// app.use('/api/citas',     citasRouter)
 // app.use('/api/ventas',    ventasRouter)
 // app.use('/api/inventario', inventarioRouter)
 

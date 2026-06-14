@@ -15,6 +15,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/inventario',         icon: 'inventory_2',     label: 'Inventario' },
   { to: '/historias-clinicas', icon: 'clinical_notes',  label: 'Historias Clínicas' },
   { to: '/citas',              icon: 'calendar_month',  label: 'Citas' },
+  { to: '/pacientes',          icon: 'groups',          label: 'Pacientes' },
+  { to: '/empresas',           icon: 'domain',          label: 'Empresas' },
 ]
 
 export function BarraLateral() {
