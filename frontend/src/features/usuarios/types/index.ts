@@ -40,3 +40,17 @@ export interface UsuarioFormInput {
   contrasena?:      string
   id_rol:           number
 }
+
+export interface Empleado {
+  id_empleado: number
+  primer_nombre: string
+  segundo_nombre: string | null
+  primer_apellido: string
+  segundo_apellido: string | null
+  numero_telefono: string | null
+  correo: string | null
+  id_sucursal: number | null
+  activo: boolean
+  nombre_sucursal?: string
+}
+

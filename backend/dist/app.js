@@ -14,6 +14,9 @@ const manejo_errores_1 = require("./middleware/manejo-errores");
 const autenticacion_routes_1 = require("./modules/autenticacion/autenticacion.routes");
 const sucursales_routes_1 = require("./modules/sucursales/sucursales.routes");
 const usuarios_routes_1 = require("./modules/usuarios/usuarios.routes");
+const pacientes_routes_1 = require("./modules/pacientes/pacientes.routes");
+const empresas_routes_1 = require("./modules/empresas/empresas.routes");
+const citas_routes_1 = require("./modules/citas/citas.routes");
 const app = (0, express_1.default)();
 // ── Seguridad ─────────────────────────────────────────────────────────────────
 app.use((0, helmet_1.default)());
@@ -54,9 +57,10 @@ app.use('/api/auth', autenticacion_routes_1.autenticacionRouter);
 app.use('/api/sucursales', sucursales_routes_1.sucursalesRouter);
 app.use('/api/usuarios', usuarios_routes_1.usuariosRouter);
 app.use('/api/empleados', usuarios_routes_1.empleadosRouter);
+app.use('/api/pacientes', pacientes_routes_1.pacientesRouter);
+app.use('/api/empresas', empresas_routes_1.empresasRouter);
+app.use('/api/citas', citas_routes_1.citasRouter);
 // TODO: Agregar más routers por módulo:
-// app.use('/api/pacientes', pacientesRouter)
-// app.use('/api/citas',     citasRouter)
 // app.use('/api/ventas',    ventasRouter)
 // app.use('/api/inventario', inventarioRouter)
 // ── Manejo centralizado de errores ────────────────────────────────────────────
