@@ -1,0 +1,76 @@
+version: '3.9'
+
+services:
+  # ── PostgreSQL 16 ─────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: clinica_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       clinica_optometrica
+      POSTGRES_USER:     clinica_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ClinicaPass2024}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./basedatos.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clinica_user -d clinica_optometrica"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── pgAdmin 4 (gestión visual BD) ─────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: clinica_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL:    admin@drlentes.com
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-Admin1234}
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Backend (Node.js 24 + Express) ────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: clinica_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV:             production
+      PORT:                 3000
+      FRONTEND_URL:         http://localhost:5173
+      DB_HOST:              db
+      DB_PORT:              5432
+      DB_NAME:              clinica_optometrica
+      DB_USER:              clinica_user
+      DB_PASSWORD:          ${DB_PASSWORD:-ClinicaPass2024}
+      JWT_ACCESS_SECRET:    ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET:   ${JWT_REFRESH_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Frontend (Vite → Nginx) ────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: clinica_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+    driver: local
