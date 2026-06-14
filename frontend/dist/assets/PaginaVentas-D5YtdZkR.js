@@ -1,0 +1,1 @@
+import{j as e}from"./index-BUoNQHky.js";function a(){return e.jsxs("div",{className:"p-8 animate-fade-up",children:[e.jsx("h1",{className:"font-headline font-extrabold text-2xl text-on-surface",children:"Ventas POS"}),e.jsx("p",{className:"text-outline text-sm mt-2",children:"Módulo de Ventas — Migración a React en Sprint 3"})]})}export{a as default};
