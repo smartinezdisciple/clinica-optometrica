@@ -3,257 +3,675 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Módulo de Inventario — Gestión de productos y stock para Dr. Lentes Ópticas.">
     <title>Dr. Lentes | Inventario</title>
-    
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <script src="js/tailwind-config.js"></script>
-    <link href="css/style.css" rel="stylesheet">
-    <script src="js/app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <script src="../js/tailwind-config.js"></script>
+    <link href="../css/style.css" rel="stylesheet">
 
+    <style>
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.6);opacity:.6}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+        .fade-up  { animation:fadeUp .4s ease both; }
+        .scale-in { animation:scaleIn .28s cubic-bezier(.34,1.56,.64,1) both; }
+        .live-dot { animation:pulse-dot 2.2s infinite; }
+        .notif-dot{ animation:pulse-dot 2.2s infinite; }
+
+        .glass { background:rgba(255,255,255,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px); }
+
+        .sidebar-link { transition:background .2s,color .2s; }
+        .sidebar-link.active { background:#fff;color:#00658d;font-weight:700;box-shadow:0 1px 4px rgba(0,101,141,.08); }
+        .sidebar-link:hover  { background:rgba(0,174,239,.06);color:#00658d; }
+
+        .cat-pill { transition:all .2s;cursor:pointer; }
+        .cat-pill.active { background:#00658d;color:#fff; }
+        .cat-pill:not(.active):hover { background:#e0f2fe;color:#00658d; }
+
+        .product-card { transition:box-shadow .2s,transform .2s; }
+        .product-card:hover { box-shadow:0 8px 24px rgba(0,101,141,.12);transform:translateY(-2px); }
+
+        .stock-ok    { background:#dcfce7;color:#166534; }
+        .stock-low   { background:#fef9c3;color:#854d0e; }
+        .stock-none  { background:#fee2e2;color:#991b1b; }
+
+        .modal-bd { background:rgba(0,0,0,.45);backdrop-filter:blur(4px); }
+
+        /* Table row hover */
+        tr.data-row { transition:background .15s; }
+        tr.data-row:hover { background:rgba(0,101,141,.03); }
+
+        /* View toggle */
+        .vt-btn { transition:all .2s; }
+        .vt-btn.active { background:#00658d;color:#fff; }
+        .vt-btn:not(.active):hover { background:#e0f2fe;color:#00658d; }
+
+        /* Stock bar */
+        .stock-bar { transition:width 1s cubic-bezier(.34,1,.64,1); }
+
+        ::-webkit-scrollbar{width:5px;height:5px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:#bdc8d1;border-radius:8px}
+    </style>
 </head>
+
 <body class="bg-surface font-body text-on-surface">
-    <div id="root">
-        
-    <!-- Sidebar Overlay (Mobile) -->
-    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+<div id="root">
 
-    <!-- SideNavBar -->
-    <aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-slate-50 dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col py-6 sidebar-transition lg:translate-x-0 -translate-x-full">
-        <!-- Fixed Header in Sidebar -->
-        <div class="px-6 mb-8 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0">
-                    <img src="https://lh3.googleusercontent.com/aida/ADBb0ugSC5blHPIwgGwZjPWIWYKN0Xh3oRWm2HMrIOYbyO1ELYOAOHSJKK3nIr1RfrcJdvnU2aZ66brRxABuKt3KJ0vbUPkKtJV8MGGUEypFiYKplf7bwqcnoiNYbqnr88gS5DCk4Awi-f5BR2mO1YpG93VlAgXnrUiCPfBhSNdrxCnnVelEjghrQyvxKguJpm6GQPjtPYQaRgXHAB4etIBqs5pRdbFBp8ae201C2njkXv_gEG1RrUVnuL_yG6X_H2__k-NSZjsbC21cSA" alt="Dr. Lentes Ópticas" class="w-full h-full object-cover">
-                </div>
-                <div class="logo-text overflow-hidden whitespace-nowrap">
-                    <h1 class="text-xl font-bold bg-gradient-to-br from-sky-700 to-sky-400 bg-clip-text text-transparent font-headline leading-none">Dr. Lentes</h1>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Ópticas</p>
-                </div>
+<div id="sidebar-overlay" class="fixed inset-0 bg-slate-900/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="h-screen w-64 fixed left-0 top-0 z-50 bg-white border-r border-surface-container flex flex-col py-5 sidebar-transition lg:translate-x-0 -translate-x-full">
+    <div class="px-5 mb-7 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+                <span class="material-symbols-outlined text-white text-xl" style="font-variation-settings:'FILL' 1">visibility</span>
+            </div>
+            <div class="logo-text overflow-hidden">
+                <p class="text-base font-extrabold font-headline bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent leading-none">Dr. Lentes</p>
+                <p class="text-[9px] uppercase tracking-[.18em] text-outline font-semibold mt-0.5">Ópticas Clínicas</p>
             </div>
         </div>
+    </div>
+    <nav class="flex-1 px-3 space-y-0.5 overflow-y-auto" id="sidebar-nav">
+        <a href="dashboard.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">dashboard</span><span class="nav-label">Tablero</span>
+        </a>
+        <a href="ventas.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">point_of_sale</span><span class="nav-label">Ventas</span>
+        </a>
+        <a href="inventario.html" class="sidebar-link active flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]" style="font-variation-settings:'FILL' 1">inventory_2</span><span class="nav-label">Inventario</span>
+        </a>
+        <a href="historias-clinicas.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">clinical_notes</span><span class="nav-label">Historias Clínicas</span>
+        </a>
+        <a href="citas.html" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">calendar_month</span><span class="nav-label">Citas</span>
+        </a>
+        <div class="my-3 h-px bg-surface-container mx-1"></div>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">bar_chart</span><span class="nav-label">Reportes</span>
+        </a>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">shopping_cart</span><span class="nav-label">Compras</span>
+        </a>
+    </nav>
+    <div class="px-3 pt-4 border-t border-surface-container space-y-0.5 shrink-0">
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">settings</span><span class="nav-label">Configuración</span>
+        </a>
+        <a href="#" class="sidebar-link text-on-surface-variant flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 hover:text-red-500">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">logout</span><span class="nav-label">Cerrar Sesión</span>
+        </a>
+    </div>
+</aside>
 
-        <!-- Scrollable Navigation -->
-        <nav class="flex-1 space-y-1 px-4 overflow-y-auto">
-            <a href="dashboard.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="dashboard">dashboard</span>
-                <span class="nav-label whitespace-nowrap">Tablero</span>
-            </a>
-            <a href="ventas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="payments">payments</span>
-                <span class="nav-label whitespace-nowrap">Ventas</span>
-            </a>
-            <a href="inventario.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="inventory_2">inventory_2</span>
-                <span class="nav-label whitespace-nowrap">Inventario</span>
-            </a>
-            <a href="historias-clinicas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="clinical_notes">clinical_notes</span>
-                <span class="nav-label whitespace-nowrap">Historias Clínicas</span>
-            </a>
-            <a href="citas.html" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-r-full mr-4">
-                <span class="material-symbols-outlined shrink-0" data-icon="calendar_month">calendar_month</span>
-                <span class="nav-label whitespace-nowrap">Citas</span>
-            </a>
-        </nav>
-
-        <!-- Footer actions in Sidebar -->
-        <div class="px-4 mt-auto pt-6 border-t border-slate-100 dark:border-slate-800 space-y-1">
-            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
-                <span class="material-symbols-outlined shrink-0" data-icon="settings">settings</span>
-                <span class="nav-label whitespace-nowrap">Configuración</span>
-            </a>
-            <a href="#" class="text-slate-500 hover:text-sky-600 flex items-center gap-3 px-4 py-2 text-sm font-medium">
-                <span class="material-symbols-outlined shrink-0" data-icon="logout">logout</span>
-                <span class="nav-label whitespace-nowrap">Cerrar Sesión</span>
-            </a>
+<!-- TOP NAV -->
+<header id="header" class="fixed top-0 right-0 h-14 z-40 glass border-b border-surface-container flex items-center justify-between px-5 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
+    <div class="flex items-center gap-3">
+        <button onclick="toggleSidebar()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant lg:hidden">
+            <span class="material-symbols-outlined text-[22px]">menu</span>
+        </button>
+        <div class="hidden sm:flex items-center gap-2 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-base text-primary" style="font-variation-settings:'FILL' 1">home</span>
+            <span class="text-outline">/</span>
+            <span class="font-semibold text-on-surface">Inventario</span>
         </div>
-    </aside>
-
-        
-    <!-- TopNavBar -->
-    <header id="header" class="fixed top-0 right-0 h-16 z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 flex items-center justify-between px-4 sm:px-8 sidebar-transition w-full lg:w-[calc(100%-16rem)]">
-        <div class="flex items-center gap-4 w-full sm:w-auto flex-1">
-            <button onclick="toggleSidebar()" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 lg:hidden">
-                <span class="material-symbols-outlined" data-icon="menu">menu</span>
-            </button>
-            <div class="relative flex-1 max-w-md hidden sm:block">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg" data-icon="search">search</span>
-                <input type="text" placeholder="Buscar pacientes, registros o inventario..." class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none">
+    </div>
+    <div class="flex items-center gap-3">
+        <button onclick="openAddModal()" class="flex items-center gap-2 bg-gradient-to-r from-primary to-primary-container text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all">
+            <span class="material-symbols-outlined text-base">add</span>
+            Nuevo Producto
+        </button>
+        <button class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant relative">
+            <span class="material-symbols-outlined text-[22px]">notifications</span>
+            <span class="notif-dot absolute top-1 right-1 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+        </button>
+        <div class="h-7 w-px bg-surface-container hidden sm:block"></div>
+        <button class="flex items-center gap-2.5 hover:bg-surface-container px-2 py-1.5 rounded-xl transition-colors group">
+            <div class="text-right hidden sm:block">
+                <p class="text-xs font-bold text-on-surface leading-none group-hover:text-primary">Dr. Roberto Smith</p>
+                <p class="text-[10px] text-outline font-medium mt-0.5">Optometrista</p>
             </div>
-            <!-- Mobile search button -->
-            <button class="sm:hidden p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-600 dark:text-slate-400 ml-auto">
-                <span class="material-symbols-outlined">search</span>
-            </button>
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-white font-bold text-sm shrink-0">R</div>
+        </button>
+    </div>
+</header>
+
+<!-- MAIN -->
+<main id="main-content" class="pt-14 min-h-screen sidebar-transition lg:ml-64 ml-0 bg-surface overflow-x-hidden">
+
+    <!-- Page header -->
+    <div class="border-b border-surface-container bg-white px-5 md:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 fade-up">
+        <div>
+            <h1 class="font-headline font-extrabold text-xl text-on-surface tracking-tight">Gestión de Inventario</h1>
+            <p class="text-xs text-outline mt-0.5">Control de stock, productos y movimientos — Sucursal Principal</p>
         </div>
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-4">
-                <button class="text-slate-600 dark:text-slate-400 hover:text-sky-600 transition-colors relative hidden sm:block" title="Notificaciones">
-                    <span class="material-symbols-outlined" data-icon="notifications">notifications</span>
-                    <span class="absolute top-0 right-0 w-2 h-2 bg-tertiary-container rounded-full border-2 border-white"></span>
+        <div class="flex items-center gap-2">
+            <!-- View toggle -->
+            <div class="flex bg-surface-container-low rounded-xl p-1 gap-1">
+                <button id="vt-grid" class="vt-btn active p-1.5 rounded-lg" onclick="setViewMode('grid')" title="Vista cuadrícula">
+                    <span class="material-symbols-outlined text-base">grid_view</span>
+                </button>
+                <button id="vt-table" class="vt-btn p-1.5 rounded-lg" onclick="setViewMode('table')" title="Vista tabla">
+                    <span class="material-symbols-outlined text-base">table_rows</span>
                 </button>
             </div>
-            <div class="h-8 w-[1px] bg-slate-100 hidden sm:block"></div>
-            <div class="flex items-center gap-3 cursor-pointer group">
-                <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-on-surface leading-none group-hover:text-primary transition-colors">Dr. Roberto Smith</p>
-                    <p class="text-[10px] text-slate-400 font-medium">Optometrista</p>
+            <!-- Export -->
+            <button class="flex items-center gap-1.5 px-3 py-2 bg-surface-container text-on-surface text-xs font-bold rounded-xl hover:bg-surface-dim transition-all">
+                <span class="material-symbols-outlined text-base">file_download</span>
+                Exportar
+            </button>
+        </div>
+    </div>
+
+    <div class="p-5 md:p-8 space-y-5">
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 fade-up">
+            <div class="bg-white rounded-2xl border border-surface-container p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-outline font-medium">Total Productos</p>
+                    <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">inventory_2</span>
+                    </div>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold shrink-0">R</div>
+                <p class="text-2xl font-extrabold font-headline text-on-surface" id="kpi-total">24</p>
+                <p class="text-[10px] text-outline mt-1">SKUs activos</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-surface-container p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-outline font-medium">Valor en Stock</p>
+                    <div class="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-green-600 text-base" style="font-variation-settings:'FILL' 1">payments</span>
+                    </div>
+                </div>
+                <p class="text-2xl font-extrabold font-headline text-on-surface">$284K</p>
+                <p class="text-[10px] text-outline mt-1">Valor total</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-surface-container p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-outline font-medium">Stock Bajo</p>
+                    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-amber-600 text-base" style="font-variation-settings:'FILL' 1">warning</span>
+                    </div>
+                </div>
+                <p class="text-2xl font-extrabold font-headline text-amber-600" id="kpi-low">3</p>
+                <p class="text-[10px] text-outline mt-1">Requieren reposición</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-surface-container p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-xs text-outline font-medium">Sin Stock</p>
+                    <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-red-500 text-base" style="font-variation-settings:'FILL' 1">remove_shopping_cart</span>
+                    </div>
+                </div>
+                <p class="text-2xl font-extrabold font-headline text-red-500" id="kpi-none">1</p>
+                <p class="text-[10px] text-outline mt-1">Agotados</p>
             </div>
         </div>
-    </header>
 
-        <main id="main-content" class="pt-16 min-h-screen pb-20 sidebar-transition lg:ml-64 ml-0">
-            <div class="p-4 md:p-6 lg:p-8 space-y-8">
-                <div class="flex items-center justify-between flex-wrap gap-4">
-                    <div>
-                        <h1 class="font-headline font-bold text-3xl tracking-tight text-primary">Inventario y Catálogo</h1>
-                        <p class="text-on-surface-variant mt-1 text-sm">Gestiona tus productos, actualiza existencias o agrégalos directamente a ventas.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <button class="bg-surface-container-high text-on-surface px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
-                            <span class="material-symbols-outlined text-lg">filter_alt</span> Filtros
-                        </button>
-                        <button class="bg-gradient-to-br from-primary to-primary-container text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all">
-                            <span class="material-symbols-outlined text-lg">add</span> Nuevo Producto
-                        </button>
+        <!-- Stock alerts banner -->
+        <div id="alert-banner" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 fade-up">
+            <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-amber-600 text-lg" style="font-variation-settings:'FILL' 1">warning</span>
+            </div>
+            <div class="flex-1">
+                <p class="text-sm font-bold text-amber-900">Alertas de Stock Mínimo</p>
+                <p class="text-xs text-amber-700 mt-0.5" id="alert-text">3 productos han alcanzado el umbral mínimo de stock. Revisa los marcados en naranja.</p>
+            </div>
+            <button onclick="document.getElementById('alert-banner').remove()" class="text-amber-600 hover:text-amber-800 p-1.5 rounded-lg hover:bg-amber-100 transition-all">
+                <span class="material-symbols-outlined text-base">close</span>
+            </button>
+        </div>
+
+        <!-- Search + Filter bar -->
+        <div class="flex flex-col sm:flex-row gap-3 fade-up">
+            <div class="relative flex-1">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]">search</span>
+                <input id="inv-search" type="text" placeholder="Buscar por nombre, SKU o categoría…"
+                       class="w-full bg-white border border-surface-container rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-sm"
+                       oninput="applyFilters()">
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <button class="cat-pill active px-3.5 py-2 rounded-xl text-xs font-bold bg-primary text-white" onclick="setCategory('all',this)">Todos</button>
+                <button class="cat-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-surface-container text-on-surface-variant" onclick="setCategory('marcos',this)">Marcos</button>
+                <button class="cat-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-surface-container text-on-surface-variant" onclick="setCategory('gafas',this)">Gafas Sol</button>
+                <button class="cat-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-surface-container text-on-surface-variant" onclick="setCategory('lentes',this)">Lentes</button>
+                <button class="cat-pill px-3.5 py-2 rounded-xl text-xs font-bold bg-white border border-surface-container text-on-surface-variant" onclick="setCategory('accesorios',this)">Accesorios</button>
+                <!-- Stock filter -->
+                <select id="stock-filter" onchange="applyFilters()" class="bg-white border border-surface-container rounded-xl py-2 px-3 text-xs font-bold outline-none focus:ring-2 focus:ring-primary/30 text-on-surface-variant">
+                    <option value="all">Todos los stocks</option>
+                    <option value="ok">Stock normal</option>
+                    <option value="low">Stock bajo</option>
+                    <option value="none">Sin stock</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- GRID VIEW -->
+        <div id="view-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 fade-up">
+            <!-- Rendered by JS -->
+        </div>
+
+        <!-- TABLE VIEW -->
+        <div id="view-table" class="hidden bg-white rounded-2xl border border-surface-container shadow-sm overflow-hidden fade-up">
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-surface-container-low text-on-surface-variant text-xs uppercase tracking-wider">
+                            <th class="px-5 py-3 text-left font-semibold">Producto</th>
+                            <th class="px-5 py-3 text-left font-semibold">SKU</th>
+                            <th class="px-5 py-3 text-left font-semibold">Categoría</th>
+                            <th class="px-5 py-3 text-right font-semibold">Precio</th>
+                            <th class="px-5 py-3 text-center font-semibold">Stock</th>
+                            <th class="px-5 py-3 text-center font-semibold">Estado</th>
+                            <th class="px-5 py-3 text-center font-semibold">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden text-center py-20 text-outline">
+            <span class="material-symbols-outlined text-5xl block mb-3">search_off</span>
+            <p class="font-semibold">No se encontraron productos</p>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL: Add/Edit Product -->
+<div id="modal-product" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-bd absolute inset-0" onclick="closeAddModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg scale-in overflow-hidden max-h-[90vh] overflow-y-auto">
+        <div class="p-5 border-b border-surface-container flex items-center justify-between sticky top-0 bg-white z-10">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white text-base" style="font-variation-settings:'FILL' 1">add_box</span>
+                </div>
+                <h2 id="modal-prod-title" class="font-headline font-extrabold text-base text-on-surface">Nuevo Producto</h2>
+            </div>
+            <button onclick="closeAddModal()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <div class="p-5 space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Nombre del Producto</label>
+                    <input id="prod-name" type="text" placeholder="Ej: Ray-Ban Wayfarer RB2140"
+                           class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">SKU / Código</label>
+                    <input id="prod-sku" type="text" placeholder="Ej: RB-2140"
+                           class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Categoría</label>
+                    <select id="prod-category" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                        <option value="marcos">Marcos Oftalmológicos</option>
+                        <option value="gafas">Gafas de Sol</option>
+                        <option value="lentes">Lentes Clínicos</option>
+                        <option value="accesorios">Accesorios</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Precio (MXN)</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm font-bold">$</span>
+                        <input id="prod-price" type="number" min="0" placeholder="0.00"
+                               class="w-full bg-surface-container-low border-none rounded-xl py-2.5 pl-7 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
                     </div>
                 </div>
-
-                <div class="flex gap-2 pb-4 overflow-x-auto custom-scrollbar">
-                    <button class="px-5 py-2 rounded-xl bg-primary text-white text-sm font-bold shadow-sm whitespace-nowrap">Todos</button>
-                    <button class="px-5 py-2 rounded-xl text-sm font-semibold text-outline-variant hover:bg-surface-container-lowest transition-colors whitespace-nowrap">Armazones</button>
-                    <button class="px-5 py-2 rounded-xl text-sm font-semibold text-outline-variant hover:bg-surface-container-lowest transition-colors whitespace-nowrap">Lentes de Contacto</button>
-                    <button class="px-5 py-2 rounded-xl text-sm font-semibold text-outline-variant hover:bg-surface-container-lowest transition-colors whitespace-nowrap">Soluciones y Accesorios</button>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Stock Actual</label>
+                    <input id="prod-stock" type="number" min="0" placeholder="0"
+                           class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
                 </div>
-
-                <!-- Bento-style Catalog Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                    <!-- Product Card 1 -->
-                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
-                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
-                            <img alt="Armazón Moderno" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9EJ6CIv6O-1pYwyNL45m3vlEFkrE5yfboueKYJNZFad1dWu3Qs0FUhYsg4bXg3liDN1x5_Q9xbU0275_H4T0ExRN4GYZNMexaEEuF1pbncDKVkxN49If6mvsQNvF6aLsK4Pm_TsmU5qnKrbUL-8GHoqtFhphIKmAOViQn3IBW9v4kfmZWjmdVm1jDHamNfK_660FBYvVdDIiMalJOMWs20PrbqFUM-xl0sbU2PM9Kjozzxr-Rjf2RSq61YRdxYgTDy3mIH-QIuyb8"/>
-                            <div class="absolute top-3 right-3 px-2 py-1 bg-white/90 backdrop-blur rounded-lg text-[10px] font-bold text-primary shadow-sm">NUEVO</div>
-                        </div>
-                        <div class="flex flex-col flex-1">
-                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Ray-Ban</span>
-                            <h3 class="font-semibold text-on-surface text-base leading-tight">Wayfarer Classic Noir</h3>
-                            <div class="flex justify-between items-end mt-3">
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
-                                    <span class="text-primary font-black text-lg leading-none">$3,450.00</span>
-                                </div>
-                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">Stock: 12</span>
-                            </div>
-                        </div>
-                        <!-- Actions -->
-                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
-                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
-                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
-                                <span class="material-symbols-outlined text-sm">edit</span>
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
-                                <span class="material-symbols-outlined text-sm">delete</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Product Card 2 -->
-                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
-                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
-                            <img alt="Lentes Minimalistas" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBi4k8EpekcMjLpDB574edV1iBpGWNHJkKkxwKX6pdL97BPL9x2XCyNF8u5r8NBOPSXCSrbX9nZugijA6iK9UOfw0qstxEE_SLnr9L00faVpWI_BWQh7_9uEgJlCNFcXovXGAqbl373QcDRWYiYLLGMzs1OHakH-KhHK_KGytee0E1xySSDMu4IKy3TZMRdFZ8d426VHW7lWxO049aFxfiKcsn4Ng7GSpC-x7AcrCgS80tSKapXuOW1AaI1t0NDe9iyiH4mrlOeStl1"/>
-                        </div>
-                        <div class="flex flex-col flex-1">
-                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Oakley</span>
-                            <h3 class="font-semibold text-on-surface text-base leading-tight">Titanium Slim Fit</h3>
-                            <div class="flex justify-between items-end mt-3">
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
-                                    <span class="text-primary font-black text-lg leading-none">$4,100.00</span>
-                                </div>
-                                <span class="text-[11px] font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-md border border-orange-100">Stock: 5</span>
-                            </div>
-                        </div>
-                        <!-- Actions -->
-                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
-                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
-                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
-                                <span class="material-symbols-outlined text-sm">edit</span>
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
-                                <span class="material-symbols-outlined text-sm">delete</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Product Card 3 -->
-                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
-                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
-                            <img alt="Lentes de contacto" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbSM3G3GcFTLtKPoiAjQAvu4wXDogwjog9Up8J_VdPmGnyS-IM3yCZp_Ie85f_KiNE391WCT8XWL3KDBOBh7Fv2DR1b96emAn2EgOX3Fle2Yqe-qh3G-vE9T0DsgzauDwDlosXOQ48a_OqdAKkdHqMc2MZL3DBGJ2SF1HkMh8d2VJyqRraliTnWynx4yrz0ATKzya84MBPHuo2XBd4yBWbVNl4Ah4c956Fv85oXFv60HAKwmGR44dwlGP0QT3cWaOe1SSF5Ua0gqDY"/>
-                        </div>
-                        <div class="flex flex-col flex-1">
-                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Acuvue</span>
-                            <h3 class="font-semibold text-on-surface text-base leading-tight">Moist Daily (30 pcs)</h3>
-                            <div class="flex justify-between items-end mt-3">
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
-                                    <span class="text-primary font-black text-lg leading-none">$890.00</span>
-                                </div>
-                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">Stock: 45</span>
-                            </div>
-                        </div>
-                        <!-- Actions -->
-                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
-                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
-                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
-                                <span class="material-symbols-outlined text-sm">edit</span>
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
-                                <span class="material-symbols-outlined text-sm">delete</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Product Card 4 -->
-                    <div class="bg-surface-container-lowest rounded-2xl p-4 flex flex-col gap-4 group hover:shadow-xl transition-all duration-300 border border-surface-container hover:border-primary/30">
-                        <div class="relative aspect-[4/3] rounded-xl overflow-hidden bg-surface-container-low">
-                            <img alt="Solución óptica" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuXEx0dqFyUiQAyt3aTQ4B-pxLE_bdyYf6hiHMT4vRLUqBB2xNiwiTPU3QTyjGkJ4thZ11qpXpwQzYQ0jgKp0O1pyqddSmD3EYjHAihXmqYf8k-k-6fuiRdKVrQq1z8M-1fLWAqImDZYOwDvXSlRnwS_PWpYHB-F2zNaLXq0IGT6Sba8ViDfryUpVxaLF83KgHiXGW0Ube7k1D2O4PPvv1ZbciVN4_qEHVkc_1w-RL_Nl9njIo1ADJLHYisnjavqoKcMfGHjqBYX7U"/>
-                        </div>
-                        <div class="flex flex-col flex-1">
-                            <span class="text-[10px] uppercase tracking-wider text-outline font-bold mb-1">Opti-Free</span>
-                            <h3 class="font-semibold text-on-surface text-base leading-tight">PureMoist Solution</h3>
-                            <div class="flex justify-between items-end mt-3">
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-medium">Precio Venta</p>
-                                    <span class="text-primary font-black text-lg leading-none">$245.00</span>
-                                </div>
-                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">Stock: 28</span>
-                            </div>
-                        </div>
-                        <!-- Actions -->
-                        <div class="mt-auto flex gap-2 border-t border-surface-container pt-4">
-                            <button class="flex-1 bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:bg-primary/90 transition-colors shadow-sm">
-                                <span class="material-symbols-outlined text-sm">add_shopping_cart</span> Vender
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition-colors" title="Editar">
-                                <span class="material-symbols-outlined text-sm">edit</span>
-                            </button>
-                            <button class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors" title="Eliminar">
-                                <span class="material-symbols-outlined text-sm">delete</span>
-                            </button>
-                        </div>
-                    </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Stock Mínimo</label>
+                    <input id="prod-stock-min" type="number" min="0" placeholder="5"
+                           class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Proveedor</label>
+                    <select id="prod-supplier" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                        <option>Distribuidora Óptica Nacional</option>
+                        <option>LuxOptical Import</option>
+                        <option>Essilor Latinoamérica</option>
+                        <option>Safilo Group</option>
+                    </select>
                 </div>
             </div>
-        </main>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeAddModal()" class="flex-1 py-2.5 rounded-xl bg-surface-container text-on-surface text-sm font-bold hover:bg-surface-dim transition-all">Cancelar</button>
+                <button onclick="saveProduct()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white text-sm font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all active:translate-y-0">
+                    Guardar Producto
+                </button>
+            </div>
+        </div>
     </div>
+</div>
+
+<!-- MODAL: Stock Adjustment -->
+<div id="modal-adjust" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="modal-bd absolute inset-0" onclick="closeAdjustModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm scale-in">
+        <div class="p-5 border-b border-surface-container flex items-center justify-between">
+            <h2 class="font-headline font-extrabold text-base text-on-surface">Ajustar Stock</h2>
+            <button onclick="closeAdjustModal()" class="p-1.5 hover:bg-surface-container rounded-lg transition-colors text-on-surface-variant">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+        <div class="p-5 space-y-4">
+            <div>
+                <p class="text-xs text-outline mb-1">Producto</p>
+                <p class="font-bold text-on-surface" id="adjust-product-name">—</p>
+                <p class="text-xs text-outline mt-0.5">Stock actual: <span id="adjust-current-stock" class="font-bold text-on-surface">—</span></p>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Tipo de Movimiento</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="setAdjustType('entrada',this)" class="adj-type py-2 rounded-xl bg-green-50 text-green-700 text-xs font-bold border-2 border-green-200 transition-all">
+                        ↑ Entrada
+                    </button>
+                    <button onclick="setAdjustType('salida',this)" class="adj-type py-2 rounded-xl bg-surface-container text-on-surface text-xs font-bold border-2 border-transparent transition-all">
+                        ↓ Salida
+                    </button>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Cantidad</label>
+                <input id="adjust-qty" type="number" min="1" placeholder="0"
+                       class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-1.5">Motivo</label>
+                <select id="adjust-reason" class="w-full bg-surface-container-low border-none rounded-xl py-2.5 px-3 text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all">
+                    <option>Compra a proveedor</option>
+                    <option>Devolución de cliente</option>
+                    <option>Ajuste por inventario físico</option>
+                    <option>Pérdida / daño</option>
+                    <option>Transferencia entre sucursales</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="closeAdjustModal()" class="flex-1 py-2.5 rounded-xl bg-surface-container text-on-surface text-sm font-bold hover:bg-surface-dim transition-all">Cancelar</button>
+                <button onclick="confirmAdjust()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white text-sm font-bold shadow-md hover:shadow-lg transition-all">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   DATA STORE
+═══════════════════════════════════════════════════ */
+let PRODUCTS = [
+    { id:1,  name:'Ray-Ban Wayfarer RB2140',   sku:'RB-2140', category:'marcos',    price:3450, stock:8,  minStock:4,  icon:'eyeglasses',       supplier:'LuxOptical Import' },
+    { id:2,  name:'Oakley Holbrook OO9102',    sku:'OA-9102', category:'gafas',     price:2890, stock:5,  minStock:3,  icon:'wb_sunny',          supplier:'Distribuidora Óptica' },
+    { id:3,  name:'Lente Multifocal Essilor',  sku:'ES-MF01', category:'lentes',    price:1890, stock:14, minStock:6,  icon:'lens_blur',         supplier:'Essilor Latinoamérica' },
+    { id:4,  name:'Opti-Free PureMoist 300ml', sku:'OF-PM30', category:'accesorios',price:245,  stock:22, minStock:10, icon:'water_drop',        supplier:'Distribuidora Óptica' },
+    { id:5,  name:'Silhouette Rimless 4377',   sku:'SI-4377', category:'marcos',    price:5200, stock:3,  minStock:4,  icon:'eyeglasses',        supplier:'Safilo Group' },
+    { id:6,  name:'Transitions Gen 8 Gray',    sku:'TR-GY08', category:'lentes',    price:2100, stock:9,  minStock:5,  icon:'lens_blur',         supplier:'Essilor Latinoamérica' },
+    { id:7,  name:'Carrera Champion 65',       sku:'CA-0065', category:'gafas',     price:1750, stock:0,  minStock:3,  icon:'wb_sunny',          supplier:'Safilo Group' },
+    { id:8,  name:'Estuche Premium Cuero',     sku:'EC-PR01', category:'accesorios',price:180,  stock:30, minStock:10, icon:'inventory_2',       supplier:'Distribuidora Óptica' },
+    { id:9,  name:'Persol PO3092SM',           sku:'PE-3092', category:'gafas',     price:3100, stock:4,  minStock:3,  icon:'wb_sunny',          supplier:'LuxOptical Import' },
+    { id:10, name:'Lente Monofocal Blue',      sku:'LM-BL01', category:'lentes',    price:980,  stock:2,  minStock:6,  icon:'lens_blur',         supplier:'Essilor Latinoamérica' },
+    { id:11, name:'Paño Microfibra XL',        sku:'PM-XL01', category:'accesorios',price:65,   stock:50, minStock:15, icon:'cleaning_services', supplier:'Distribuidora Óptica' },
+    { id:12, name:'Lindberg Strip 9808',       sku:'LB-9808', category:'marcos',    price:7800, stock:2,  minStock:3,  icon:'eyeglasses',        supplier:'LuxOptical Import' },
+];
+
+let productIdCounter = 13;
+let currentCategory = 'all';
+let currentViewMode = 'grid';
+let adjustingProductId = null;
+let adjustType = 'entrada';
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    applyFilters();
+    updateKPIs();
+});
+
+/* ═══════════════════════════════════════════════════
+   FILTERS & RENDERING
+═══════════════════════════════════════════════════ */
+function setCategory(cat, btn) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    applyFilters();
+}
+
+function applyFilters() {
+    const search = document.getElementById('inv-search').value.toLowerCase();
+    const stockFilter = document.getElementById('stock-filter').value;
+
+    let filtered = PRODUCTS;
+    if (currentCategory !== 'all') filtered = filtered.filter(p => p.category === currentCategory);
+    if (search) filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search)
+    );
+    if (stockFilter === 'ok')   filtered = filtered.filter(p => p.stock > p.minStock);
+    if (stockFilter === 'low')  filtered = filtered.filter(p => p.stock > 0 && p.stock <= p.minStock);
+    if (stockFilter === 'none') filtered = filtered.filter(p => p.stock === 0);
+
+    document.getElementById('empty-state').classList.toggle('hidden', filtered.length > 0);
+    if (currentViewMode === 'grid') renderGrid(filtered);
+    else renderTable(filtered);
+}
+
+function getStockStatus(p) {
+    if (p.stock === 0) return { class:'stock-none', label:'Sin stock' };
+    if (p.stock <= p.minStock) return { class:'stock-low', label:`⚠ ${p.stock} unid.` };
+    return { class:'stock-ok', label:`${p.stock} unid.` };
+}
+
+function renderGrid(products) {
+    const grid = document.getElementById('view-grid');
+    grid.innerHTML = products.map((p, i) => {
+        const s = getStockStatus(p);
+        return `<div class="product-card bg-white border border-surface-container rounded-2xl p-4 flex flex-col gap-3 fade-up" style="animation-delay:${i*.04}s">
+            <div class="aspect-square rounded-xl bg-gradient-to-br from-surface-container-low to-surface-container flex items-center justify-center relative">
+                <span class="material-symbols-outlined text-4xl text-primary/25" style="font-variation-settings:'FILL' 1">${p.icon}</span>
+                <span class="${s.class} absolute top-2 right-2 text-[9px] font-black px-2 py-0.5 rounded-full">${s.label}</span>
+            </div>
+            <div class="flex-1">
+                <p class="text-xs font-extrabold text-on-surface leading-snug line-clamp-2">${p.name}</p>
+                <p class="text-[10px] text-outline mt-0.5">${p.sku} · ${catLabel(p.category)}</p>
+                <div class="mt-1.5 h-1 bg-surface-container rounded-full overflow-hidden">
+                    <div class="h-full rounded-full stock-bar ${p.stock===0?'bg-red-400':p.stock<=p.minStock?'bg-amber-400':'bg-green-400'}"
+                         style="width:${Math.min(100,(p.stock/Math.max(p.minStock*2,1))*100)}%"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-sm font-extrabold text-primary font-headline">$${p.price.toLocaleString('es-MX')}</span>
+                <div class="flex gap-1">
+                    <button onclick="openAdjustModal(${p.id})" class="w-7 h-7 rounded-lg hover:bg-primary/10 text-primary flex items-center justify-center transition-all" title="Ajustar stock">
+                        <span class="material-symbols-outlined text-base">tune</span>
+                    </button>
+                    <button onclick="openEditModal(${p.id})" class="w-7 h-7 rounded-lg hover:bg-surface-container text-on-surface-variant flex items-center justify-center transition-all" title="Editar">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderTable(products) {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = products.map((p, i) => {
+        const s = getStockStatus(p);
+        return `<tr class="data-row border-t border-surface-container" style="animation:fadeUp .3s ${i*.03}s ease both">
+            <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1">${p.icon}</span>
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm text-on-surface">${p.name}</p>
+                        <p class="text-[10px] text-outline">${p.supplier}</p>
+                    </div>
+                </div>
+            </td>
+            <td class="px-5 py-3 text-xs font-mono text-outline">${p.sku}</td>
+            <td class="px-5 py-3"><span class="text-xs font-bold px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant">${catLabel(p.category)}</span></td>
+            <td class="px-5 py-3 text-right font-bold text-sm text-primary">$${p.price.toLocaleString('es-MX')}</td>
+            <td class="px-5 py-3 text-center">
+                <div class="flex items-center justify-center gap-2">
+                    <div class="w-16 h-1.5 bg-surface-container rounded-full overflow-hidden">
+                        <div class="h-full rounded-full ${p.stock===0?'bg-red-400':p.stock<=p.minStock?'bg-amber-400':'bg-green-400'}"
+                             style="width:${Math.min(100,(p.stock/Math.max(p.minStock*2,1))*100)}%"></div>
+                    </div>
+                    <span class="text-xs font-bold text-on-surface">${p.stock}</span>
+                </div>
+            </td>
+            <td class="px-5 py-3 text-center">
+                <span class="${s.class} text-[10px] font-black px-2.5 py-1 rounded-full">${s.label}</span>
+            </td>
+            <td class="px-5 py-3 text-center">
+                <div class="flex items-center justify-center gap-1">
+                    <button onclick="openAdjustModal(${p.id})" class="p-1.5 hover:bg-primary/10 text-primary rounded-lg transition-all" title="Ajustar">
+                        <span class="material-symbols-outlined text-base">tune</span>
+                    </button>
+                    <button onclick="openEditModal(${p.id})" class="p-1.5 hover:bg-surface-container text-on-surface-variant rounded-lg transition-all" title="Editar">
+                        <span class="material-symbols-outlined text-base">edit</span>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function catLabel(c) {
+    return { marcos:'Marcos', gafas:'Gafas Sol', lentes:'Lentes', accesorios:'Accesorios' }[c] || c;
+}
+
+/* ═══════════════════════════════════════════════════
+   VIEW MODE
+═══════════════════════════════════════════════════ */
+function setViewMode(mode) {
+    currentViewMode = mode;
+    document.getElementById('view-grid').classList.toggle('hidden', mode !== 'grid');
+    document.getElementById('view-table').classList.toggle('hidden', mode !== 'table');
+    document.getElementById('vt-grid').classList.toggle('active', mode === 'grid');
+    document.getElementById('vt-table').classList.toggle('active', mode === 'table');
+    applyFilters();
+}
+
+/* ═══════════════════════════════════════════════════
+   KPIs
+═══════════════════════════════════════════════════ */
+function updateKPIs() {
+    document.getElementById('kpi-total').textContent = PRODUCTS.length;
+    document.getElementById('kpi-low').textContent  = PRODUCTS.filter(p => p.stock > 0 && p.stock <= p.minStock).length;
+    document.getElementById('kpi-none').textContent = PRODUCTS.filter(p => p.stock === 0).length;
+}
+
+/* ═══════════════════════════════════════════════════
+   PRODUCT MODAL (Add/Edit)
+═══════════════════════════════════════════════════ */
+let editingId = null;
+
+function openAddModal() {
+    editingId = null;
+    document.getElementById('modal-prod-title').textContent = 'Nuevo Producto';
+    ['prod-name','prod-sku','prod-price','prod-stock','prod-stock-min'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('modal-product').classList.remove('hidden');
+}
+
+function openEditModal(id) {
+    const p = PRODUCTS.find(pr => pr.id === id);
+    if (!p) return;
+    editingId = id;
+    document.getElementById('modal-prod-title').textContent = 'Editar Producto';
+    document.getElementById('prod-name').value = p.name;
+    document.getElementById('prod-sku').value  = p.sku;
+    document.getElementById('prod-price').value = p.price;
+    document.getElementById('prod-stock').value = p.stock;
+    document.getElementById('prod-stock-min').value = p.minStock;
+    document.getElementById('prod-category').value = p.category;
+    document.getElementById('modal-product').classList.remove('hidden');
+}
+
+function closeAddModal() { document.getElementById('modal-product').classList.add('hidden'); }
+
+function saveProduct() {
+    const name     = document.getElementById('prod-name').value.trim();
+    const sku      = document.getElementById('prod-sku').value.trim();
+    const category = document.getElementById('prod-category').value;
+    const price    = parseFloat(document.getElementById('prod-price').value) || 0;
+    const stock    = parseInt(document.getElementById('prod-stock').value) || 0;
+    const minStock = parseInt(document.getElementById('prod-stock-min').value) || 5;
+
+    if (!name || !sku) { alert('Nombre y SKU son obligatorios.'); return; }
+
+    if (editingId) {
+        const p = PRODUCTS.find(pr => pr.id === editingId);
+        Object.assign(p, { name, sku, category, price, stock, minStock });
+    } else {
+        PRODUCTS.push({ id: productIdCounter++, name, sku, category, price, stock, minStock, icon:'inventory_2', supplier:'Sin asignar' });
+    }
+
+    closeAddModal();
+    applyFilters();
+    updateKPIs();
+}
+
+/* ═══════════════════════════════════════════════════
+   STOCK ADJUSTMENT MODAL
+═══════════════════════════════════════════════════ */
+function openAdjustModal(id) {
+    const p = PRODUCTS.find(pr => pr.id === id);
+    if (!p) return;
+    adjustingProductId = id;
+    adjustType = 'entrada';
+    document.getElementById('adjust-product-name').textContent   = p.name;
+    document.getElementById('adjust-current-stock').textContent  = p.stock;
+    document.getElementById('adjust-qty').value = '';
+    document.querySelectorAll('.adj-type').forEach(b => b.className = 'adj-type py-2 rounded-xl bg-surface-container text-on-surface text-xs font-bold border-2 border-transparent transition-all');
+    document.querySelector('.adj-type').className = 'adj-type py-2 rounded-xl bg-green-50 text-green-700 text-xs font-bold border-2 border-green-200 transition-all';
+    document.getElementById('modal-adjust').classList.remove('hidden');
+}
+
+function closeAdjustModal() { document.getElementById('modal-adjust').classList.add('hidden'); }
+
+function setAdjustType(type, btn) {
+    adjustType = type;
+    document.querySelectorAll('.adj-type').forEach(b => b.className = 'adj-type py-2 rounded-xl bg-surface-container text-on-surface text-xs font-bold border-2 border-transparent transition-all');
+    btn.className = `adj-type py-2 rounded-xl ${type==='entrada'?'bg-green-50 text-green-700 border-green-200':'bg-red-50 text-red-600 border-red-200'} text-xs font-bold border-2 transition-all`;
+}
+
+function confirmAdjust() {
+    const qty = parseInt(document.getElementById('adjust-qty').value) || 0;
+    if (qty <= 0) { alert('Ingresa una cantidad válida.'); return; }
+    const p = PRODUCTS.find(pr => pr.id === adjustingProductId);
+    if (!p) return;
+    if (adjustType === 'entrada') p.stock += qty;
+    else p.stock = Math.max(0, p.stock - qty);
+    closeAdjustModal();
+    applyFilters();
+    updateKPIs();
+}
+</script>
+</div>
 </body>
 </html>
