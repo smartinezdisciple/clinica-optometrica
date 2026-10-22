@@ -20,6 +20,7 @@ const PaginaUsuarios = lazy(() => import('@/features/usuarios/pages/PaginaUsuari
 const PaginaPacientes = lazy(() => import('@/features/pacientes/pages/PaginaPacientes'))
 const PaginaEmpresas = lazy(() => import('@/features/pacientes/pages/PaginaEmpresas'))
 const PaginaAuditoria = lazy(() => import('@/features/auditoria/pages/PaginaAuditoria'))
+const PaginaReportes = lazy(() => import('@/features/reportes/pages/PaginaReportes'))
 const PaginaNoEncontrada = lazy(() => import('@/features/common/pages/PaginaNoEncontrada'))
 
 // ─── Guard de autenticación ───────────────────────────────────────────────────
@@ -36,6 +37,12 @@ function RutaProtegida() {
 function RutaPublica() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   if (isAuthenticated) return <Navigate to="/dashboard" replace />
+  return <Outlet />
+}
+
+function RutaAdmin() {
+  const rol = useAuthStore((s) => s.usuario?.rol)
+  if (rol !== 'Administrador') return <Navigate to="/dashboard" replace />
   return <Outlet />
 }
 
@@ -78,6 +85,9 @@ export function AppRouter() {
             <Route path="/pacientes" element={<PaginaPacientes />} />
             <Route path="/empresas" element={<PaginaEmpresas />} />
             <Route path="/auditoria" element={<PaginaAuditoria />} />
+            <Route element={<RutaAdmin />}>
+              <Route path="/reportes" element={<PaginaReportes />} />
+            </Route>
           </Route>
 
           {/* 404 */}

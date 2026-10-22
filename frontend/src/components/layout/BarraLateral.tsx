@@ -101,6 +101,13 @@ export function BarraLateral() {
             <>
               <div className="my-2 h-px bg-surface-container mx-1" />
               <NavLink
+                to="/reportes"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all"
+              >
+                <span className="material-symbols-outlined shrink-0 text-[22px]">bar_chart</span>
+                <span>Reportes</span>
+              </NavLink>
+              <NavLink
                 to="/sucursales"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all"
               >

@@ -17,6 +17,7 @@ import { inventarioRouter } from './modules/inventario/inventario.routes'
 import { comprasRouter } from './modules/compras/compras.routes'
 import { cajaRouter } from './modules/caja/caja.routes'
 import { ventasRouter } from './modules/ventas/ventas.routes'
+import { reportesRouter } from './modules/reportes/reportes.routes'
 import { auditoriaRouter } from './modules/auditoria/auditoria.routes'
 
 const app = express()
@@ -74,6 +75,7 @@ app.use('/api/inventario', inventarioRouter)
 app.use('/api/compras', comprasRouter)
 app.use('/api/caja', cajaRouter)
 app.use('/api/ventas', ventasRouter)
+app.use('/api/reportes', reportesRouter)
 app.use('/api/auditoria', auditoriaRouter)
 
 // ── Manejo centralizado de errores ────────────────────────────────────────────

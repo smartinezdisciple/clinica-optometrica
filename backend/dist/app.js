@@ -22,6 +22,7 @@ const inventario_routes_1 = require("./modules/inventario/inventario.routes");
 const compras_routes_1 = require("./modules/compras/compras.routes");
 const caja_routes_1 = require("./modules/caja/caja.routes");
 const ventas_routes_1 = require("./modules/ventas/ventas.routes");
+const reportes_routes_1 = require("./modules/reportes/reportes.routes");
 const auditoria_routes_1 = require("./modules/auditoria/auditoria.routes");
 const app = (0, express_1.default)();
 // ── Seguridad ─────────────────────────────────────────────────────────────────
@@ -71,6 +72,7 @@ app.use('/api/inventario', inventario_routes_1.inventarioRouter);
 app.use('/api/compras', compras_routes_1.comprasRouter);
 app.use('/api/caja', caja_routes_1.cajaRouter);
 app.use('/api/ventas', ventas_routes_1.ventasRouter);
+app.use('/api/reportes', reportes_routes_1.reportesRouter);
 app.use('/api/auditoria', auditoria_routes_1.auditoriaRouter);
 // ── Manejo centralizado de errores ────────────────────────────────────────────
 app.use(manejo_errores_1.manejoErrores);

@@ -1,0 +1,22 @@
+import type { FiltrosReporte, GrupoCantidad, GrupoMonto, ReporteCitas, ReporteCompras, ReporteInventario, ReporteVentas, SerieCantidad, SeriePunto, StockBajoItem, TopProducto } from './reportes.types';
+type ResumenVentasRow = Omit<ReporteVentas['resumen'], 'ticketPromedio'>;
+type ResumenComprasRow = Omit<ReporteCompras['resumen'], 'ticketPromedio'>;
+type ResumenCitasRow = Omit<ReporteCitas['resumen'], 'tasaCompletadas'>;
+export declare function findResumenVentas(f: FiltrosReporte): Promise<ResumenVentasRow>;
+export declare function findSerieVentas(f: FiltrosReporte): Promise<SeriePunto[]>;
+export declare function findVentasPorMetodoPago(f: FiltrosReporte): Promise<GrupoMonto[]>;
+export declare function findVentasPorSucursal(f: FiltrosReporte): Promise<GrupoMonto[]>;
+export declare function findTopProductos(f: FiltrosReporte): Promise<TopProducto[]>;
+export declare function findVentasPorEstado(f: FiltrosReporte): Promise<GrupoMonto[]>;
+export declare function findResumenCompras(f: FiltrosReporte): Promise<ResumenComprasRow>;
+export declare function findSerieCompras(f: FiltrosReporte): Promise<SeriePunto[]>;
+export declare function findComprasPorProveedor(f: FiltrosReporte): Promise<GrupoMonto[]>;
+export declare function findComprasPorEstado(f: FiltrosReporte): Promise<GrupoMonto[]>;
+export declare function findResumenCitas(f: FiltrosReporte): Promise<ResumenCitasRow>;
+export declare function findCitasPorEstado(f: FiltrosReporte): Promise<GrupoCantidad[]>;
+export declare function findSerieCitas(f: FiltrosReporte): Promise<SerieCantidad[]>;
+export declare function findResumenInventario(f: FiltrosReporte): Promise<ReporteInventario['resumen']>;
+export declare function findStockBajo(f: FiltrosReporte): Promise<StockBajoItem[]>;
+export declare function findInventarioPorSucursal(f: FiltrosReporte): Promise<GrupoCantidad[]>;
+export {};
+//# sourceMappingURL=reportes.repository.d.ts.map
