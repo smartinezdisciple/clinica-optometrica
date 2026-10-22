@@ -1,13 +1,13 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { describe, expect, it, vi, beforeEach, Mocked } from 'vitest'
 
 // Mock the repository
-jest.mock('../../src/modules/pacientes/pacientes.repository', () => ({
-  findPacientes: jest.fn(),
-  findPacienteById: jest.fn(),
-  findClienteByCedula: jest.fn(),
-  insertPacienteTransaccion: jest.fn(),
-  updatePacienteTransaccion: jest.fn(),
-  deletePacienteRepo: jest.fn(),
+vi.mock('../../src/modules/pacientes/pacientes.repository', () => ({
+  findPacientes: vi.fn(),
+  findPacienteById: vi.fn(),
+  findClienteByCedula: vi.fn(),
+  insertPacienteTransaccion: vi.fn(),
+  updatePacienteTransaccion: vi.fn(),
+  deletePacienteRepo: vi.fn(),
 }))
 
 import * as repo from '../../src/modules/pacientes/pacientes.repository'
@@ -19,15 +19,13 @@ import {
   deletePaciente,
 } from '../../src/modules/pacientes/pacientes.service'
 
-const mockRepo = repo as jest.Mocked<typeof repo>
+const mockRepo = repo as Mocked<typeof repo>
 
 const PACIENTE_FIXTURE = {
   id_cliente: 1,
   cedula: '12345678A',
-  primer_nombre: 'Juan',
-  segundo_nombre: 'Carlos',
-  primer_apellido: 'Pérez',
-  segundo_apellido: 'García',
+  nombres: 'Juan Carlos',
+  apellidos: 'Pérez García',
   tipo_cliente: 'Persona' as const,
   numero_telefono: '8888-8888',
   correo: 'juan.perez@test.com',
@@ -39,7 +37,7 @@ const PACIENTE_FIXTURE = {
 
 describe('pacientes.service — getPacientes', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver la lista de pacientes sin búsqueda', async () => {
@@ -59,7 +57,7 @@ describe('pacientes.service — getPacientes', () => {
 
 describe('pacientes.service — getPacienteById', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver el paciente si existe', async () => {
@@ -80,7 +78,7 @@ describe('pacientes.service — getPacienteById', () => {
 
 describe('pacientes.service — createPaciente', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe registrar un nuevo paciente', async () => {
@@ -90,10 +88,8 @@ describe('pacientes.service — createPaciente', () => {
 
     const dto = {
       cedula: '12345678A',
-      primer_nombre: 'Juan',
-      segundo_nombre: 'Carlos',
-      primer_apellido: 'Pérez',
-      segundo_apellido: 'García',
+      nombres: 'Juan Carlos',
+      apellidos: 'Pérez García',
       numero_telefono: '8888-8888',
       correo: 'juan.perez@test.com',
       ocupacion: 'Estudiante',
@@ -112,8 +108,8 @@ describe('pacientes.service — createPaciente', () => {
 
     const dto = {
       cedula: '12345678A',
-      primer_nombre: 'Juan',
-      primer_apellido: 'Pérez',
+      nombres: 'Juan',
+      apellidos: 'Pérez',
       numero_telefono: '8888-8888',
       fecha_nacimiento: '2000-01-01',
     }
@@ -127,28 +123,28 @@ describe('pacientes.service — createPaciente', () => {
 
 describe('pacientes.service — updatePaciente', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe actualizar el paciente si existe', async () => {
     mockRepo.findPacienteById.mockResolvedValueOnce(PACIENTE_FIXTURE) // para la consulta inicial
     mockRepo.findClienteByCedula.mockResolvedValue(null)
     mockRepo.updatePacienteTransaccion.mockResolvedValue()
-    mockRepo.findPacienteById.mockResolvedValueOnce({ ...PACIENTE_FIXTURE, primer_nombre: 'Juan Modificado' }) // para retornar
+    mockRepo.findPacienteById.mockResolvedValueOnce({ ...PACIENTE_FIXTURE, nombres: 'Juan Modificado' }) // para retornar
 
     const dto = {
-      primer_nombre: 'Juan Modificado',
+      nombres: 'Juan Modificado',
     }
 
     const result = await updatePaciente(1, dto)
-    expect(result.primer_nombre).toBe('Juan Modificado')
+    expect(result.nombres).toBe('Juan Modificado')
     expect(mockRepo.updatePacienteTransaccion).toHaveBeenCalledWith(1, dto)
   })
 
   it('debe lanzar error 404 si el paciente no existe al actualizar', async () => {
     mockRepo.findPacienteById.mockResolvedValue(null)
 
-    await expect(updatePaciente(999, { primer_nombre: 'Test' })).rejects.toMatchObject({
+    await expect(updatePaciente(999, { nombres: 'Test' })).rejects.toMatchObject({
       statusCode: 404,
       message: 'Paciente no encontrado',
     })
@@ -157,7 +153,7 @@ describe('pacientes.service — updatePaciente', () => {
 
 describe('pacientes.service — deletePaciente', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe eliminar el paciente', async () => {

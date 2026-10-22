@@ -10,13 +10,14 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard',          icon: 'dashboard',       label: 'Tablero' },
-  { to: '/ventas',             icon: 'point_of_sale',   label: 'Ventas' },
-  { to: '/inventario',         icon: 'inventory_2',     label: 'Inventario' },
-  { to: '/historias-clinicas', icon: 'clinical_notes',  label: 'Historias Clínicas' },
-  { to: '/citas',              icon: 'calendar_month',  label: 'Citas' },
-  { to: '/pacientes',          icon: 'groups',          label: 'Pacientes' },
-  { to: '/empresas',           icon: 'domain',          label: 'Empresas' },
+  { to: '/dashboard', icon: 'dashboard', label: 'Tablero' },
+  { to: '/ventas', icon: 'point_of_sale', label: 'Ventas' },
+  { to: '/inventario', icon: 'inventory_2', label: 'Inventario' },
+  { to: '/compras', icon: 'shopping_cart', label: 'Compras' },
+  { to: '/historias-clinicas', icon: 'clinical_notes', label: 'Historias Clínicas' },
+  { to: '/citas', icon: 'calendar_month', label: 'Citas' },
+  { to: '/pacientes', icon: 'groups', label: 'Pacientes' },
+  { to: '/empresas', icon: 'domain', label: 'Empresas' },
 ]
 
 export function BarraLateral() {
@@ -51,24 +52,11 @@ export function BarraLateral() {
       >
         {/* Logo */}
         <div className="px-5 mb-7 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary-gradient flex items-center justify-center shrink-0 shadow-primary-glow">
-              <span
-                className="material-symbols-outlined text-white text-xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                visibility
-              </span>
-            </div>
-            <div>
-              <p className="text-base font-extrabold font-headline bg-primary-gradient bg-clip-text text-transparent leading-none">
-                Dr. Lentes
-              </p>
-              <p className="text-[9px] uppercase tracking-[.18em] text-outline font-semibold mt-0.5">
-                Ópticas Clínicas
-              </p>
-            </div>
-          </div>
+          <img
+            src="/imgs/logo.png"
+            alt="Dr. Lentes"
+            className="w-10 h-10 rounded-xl shrink-0 object-cover"
+          />
         </div>
 
         {/* Nav */}
@@ -102,13 +90,6 @@ export function BarraLateral() {
           <div className="my-3 h-px bg-surface-container mx-1" />
 
           <NavLink
-            to="/reportes"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all"
-          >
-            <span className="material-symbols-outlined shrink-0 text-[22px]">bar_chart</span>
-            <span>Reportes</span>
-          </NavLink>
-          <NavLink
             to="/caja"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all"
           >
@@ -132,6 +113,13 @@ export function BarraLateral() {
               >
                 <span className="material-symbols-outlined shrink-0 text-[22px]">group</span>
                 <span>Usuarios</span>
+              </NavLink>
+              <NavLink
+                to="/auditoria"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm mr-1 text-on-surface-variant hover:bg-primary/5 hover:text-primary transition-all"
+              >
+                <span className="material-symbols-outlined shrink-0 text-[22px]">track_changes</span>
+                <span>Auditoría</span>
               </NavLink>
             </>
           )}

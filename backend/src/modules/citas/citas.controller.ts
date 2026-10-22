@@ -12,6 +12,8 @@ import {
   deleteHorario,
   getDisponibilidad,
 } from './citas.service'
+import { registrarDesdeRequest } from '../auditoria/auditoria.context'
+import { TipoEvento } from '../auditoria/auditoria.types'
 import { z } from 'zod'
 
 const PatchEstadoSchema = z.object({
@@ -60,6 +62,16 @@ export async function create(req: Request, res: Response, next: NextFunction): P
   try {
     const dto = CitaSchema.parse(req.body)
     const cita = await createCita(dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Crear cita',
+      modulo:        'citas',
+      tipoEvento:    TipoEvento.CREATE,
+      tablaAfectada: 'citas',
+      idEntidad:     cita.id_cita,
+      despues:       { fecha_hora_cita: dto.fecha_hora_cita, estado: dto.estado_cita },
+    })
+
     res.status(201).json({
       ok: true,
       data: cita,
@@ -82,6 +94,16 @@ export async function update(req: Request, res: Response, next: NextFunction): P
     }
     const dto = CitaSchema.partial().parse(req.body)
     const cita = await updateCita(id, dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Actualizar cita',
+      modulo:        'citas',
+      tipoEvento:    TipoEvento.UPDATE,
+      tablaAfectada: 'citas',
+      idEntidad:     id,
+      detalle:       { camposActualizados: Object.keys(dto) },
+    })
+
     res.status(200).json({
       ok: true,
       data: cita,
@@ -104,6 +126,16 @@ export async function patchEstado(req: Request, res: Response, next: NextFunctio
     }
     const { estado_cita } = PatchEstadoSchema.parse(req.body)
     const cita = await changeCitaEstado(id, estado_cita)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Cambiar estado de cita',
+      modulo:        'citas',
+      tipoEvento:    TipoEvento.UPDATE,
+      tablaAfectada: 'citas',
+      idEntidad:     id,
+      despues:       { estado_cita },
+    })
+
     res.status(200).json({
       ok: true,
       data: cita,
@@ -156,6 +188,16 @@ export async function addHorario(req: Request, res: Response, next: NextFunction
   try {
     const dto = HorarioSchema.parse(req.body)
     const horario = await createHorario(dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Crear horario',
+      modulo:        'citas',
+      tipoEvento:    TipoEvento.CREATE,
+      tablaAfectada: 'horarios_disponibles',
+      idEntidad:     horario.id_horario,
+      despues:       { dia_semana: horario.dia_semana },
+    })
+
     res.status(201).json({
       ok: true,
       data: horario,
@@ -178,6 +220,15 @@ export async function modifyHorario(req: Request, res: Response, next: NextFunct
     }
     const dto = HorarioSchema.partial().parse(req.body)
     await updateHorario(id, dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Actualizar horario',
+      modulo:        'citas',
+      tipoEvento:    TipoEvento.UPDATE,
+      tablaAfectada: 'horarios_disponibles',
+      idEntidad:     id,
+    })
+
     res.status(200).json({
       ok: true,
       mensaje: 'Horario actualizado exitosamente',
@@ -198,6 +249,15 @@ export async function removeHorario(req: Request, res: Response, next: NextFunct
       return
     }
     await deleteHorario(id)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Eliminar horario',
+      modulo:        'citas',
+      tipoEvento:    TipoEvento.DELETE,
+      tablaAfectada: 'horarios_disponibles',
+      idEntidad:     id,
+    })
+
     res.status(200).json({
       ok: true,
       mensaje: 'Horario eliminado exitosamente',

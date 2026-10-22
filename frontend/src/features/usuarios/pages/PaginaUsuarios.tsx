@@ -30,10 +30,8 @@ export default function PaginaUsuarios() {
   const [selectedUser, setSelectedUser] = useState<UsuarioDetalle | null>(null)
 
   // Form states
-  const [primerNombre, setPrimerNombre] = useState('')
-  const [segundoNombre, setSegundoNombre] = useState('')
-  const [primerApellido, setPrimerApellido] = useState('')
-  const [segundoApellido, setSegundoApellido] = useState('')
+  const [nombres, setNombres] = useState('')
+  const [apellidos, setApellidos] = useState('')
   const [telefono, setTelefono] = useState('')
   const [correo, setCorreo] = useState('')
   const [idSucursal, setIdSucursal] = useState<number | ''>('')
@@ -112,10 +110,8 @@ export default function PaginaUsuarios() {
     setFormError({})
     if (user) {
       setSelectedUser(user)
-      setPrimerNombre(user.primer_nombre)
-      setSegundoNombre(user.segundo_nombre ?? '')
-      setPrimerApellido(user.primer_apellido)
-      setSegundoApellido(user.segundo_apellido ?? '')
+      setNombres(user.nombres)
+      setApellidos(user.apellidos)
       setTelefono(user.numero_telefono ?? '')
       setCorreo(user.correo ?? '')
       setIdSucursal(user.id_sucursal ?? '')
@@ -124,10 +120,8 @@ export default function PaginaUsuarios() {
       setIdRol(user.id_rol)
     } else {
       setSelectedUser(null)
-      setPrimerNombre('')
-      setSegundoNombre('')
-      setPrimerApellido('')
-      setSegundoApellido('')
+      setNombres('')
+      setApellidos('')
       setTelefono('')
       setCorreo('')
       setIdSucursal('')
@@ -149,8 +143,8 @@ export default function PaginaUsuarios() {
     setFormError({})
 
     const errors: Record<string, string> = {}
-    if (!primerNombre.trim()) errors.primer_nombre = 'El primer nombre es obligatorio'
-    if (!primerApellido.trim()) errors.primer_apellido = 'El primer apellido es obligatorio'
+    if (!nombres.trim()) errors.nombres = 'El nombre es obligatorio'
+    if (!apellidos.trim()) errors.apellidos = 'El apellido es obligatorio'
     if (!idSucursal) errors.id_sucursal = 'La sucursal es obligatoria'
     if (!nombreUsuario.trim()) errors.nombre_usuario = 'El nombre de usuario es obligatorio'
     if (!selectedUser && !contrasena) errors.contrasena = 'La contraseña es obligatoria'
@@ -163,10 +157,8 @@ export default function PaginaUsuarios() {
     }
 
     const body: UsuarioFormInput = {
-      primer_nombre: primerNombre.trim(),
-      segundo_nombre: segundoNombre.trim(),
-      primer_apellido: primerApellido.trim(),
-      segundo_apellido: segundoApellido.trim(),
+      nombres: nombres.trim(),
+      apellidos: apellidos.trim(),
       numero_telefono: telefono.trim(),
       correo: correo.trim(),
       id_sucursal: Number(idSucursal),
@@ -195,7 +187,7 @@ export default function PaginaUsuarios() {
       render: (row: UsuarioDetalle) => (
         <div className="flex flex-col">
           <span className="font-bold text-on-surface font-headline">
-            {row.primer_nombre} {row.primer_apellido}
+            {row.nombres} {row.apellidos}
           </span>
           <span className="text-xs text-outline">{row.correo ?? 'Sin correo'}</span>
         </div>
@@ -355,45 +347,24 @@ export default function PaginaUsuarios() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo
-              id="user-primer-nombre"
-              label="Primer Nombre"
-              placeholder="Ej: Juan"
-              value={primerNombre}
-              onChange={(e) => setPrimerNombre(e.target.value)}
-              error={formError.primer_nombre}
+              id="user-nombres"
+              label="Nombres"
+              placeholder="Ej: Juan Carlos"
+              value={nombres}
+              onChange={(e) => setNombres(e.target.value)}
+              error={formError.nombres}
               disabled={saveMutation.isPending}
               required
             />
             <Campo
-              id="user-segundo-nombre"
-              label="Segundo Nombre"
-              placeholder="Ej: Carlos (Opcional)"
-              value={segundoNombre}
-              onChange={(e) => setSegundoNombre(e.target.value)}
-              error={formError.segundo_nombre}
-              disabled={saveMutation.isPending}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Campo
-              id="user-primer-apellido"
-              label="Primer Apellido"
-              placeholder="Ej: Pérez"
-              value={primerApellido}
-              onChange={(e) => setPrimerApellido(e.target.value)}
-              error={formError.primer_apellido}
+              id="user-apellidos"
+              label="Apellidos"
+              placeholder="Ej: Pérez García"
+              value={apellidos}
+              onChange={(e) => setApellidos(e.target.value)}
+              error={formError.apellidos}
               disabled={saveMutation.isPending}
               required
-            />
-            <Campo
-              id="user-segundo-apellido"
-              label="Segundo Apellido"
-              placeholder="Ej: López (Opcional)"
-              value={segundoApellido}
-              onChange={(e) => setSegundoApellido(e.target.value)}
-              error={formError.segundo_apellido}
-              disabled={saveMutation.isPending}
             />
           </div>
 

@@ -7,6 +7,8 @@ exports.update = update;
 exports.remove = remove;
 const pacientes_types_1 = require("./pacientes.types");
 const pacientes_service_1 = require("./pacientes.service");
+const auditoria_context_1 = require("../auditoria/auditoria.context");
+const auditoria_types_1 = require("../auditoria/auditoria.types");
 /**
  * GET /api/pacientes
  */
@@ -44,6 +46,14 @@ async function create(req, res, next) {
     try {
         const dto = pacientes_types_1.PacienteSchema.parse(req.body);
         const paciente = await (0, pacientes_service_1.createPaciente)(dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Registrar paciente',
+            modulo: 'pacientes',
+            tipoEvento: auditoria_types_1.TipoEvento.CREATE,
+            tablaAfectada: 'pacientes',
+            idEntidad: paciente.id_cliente,
+            despues: { nombres: dto.nombres, apellidos: dto.apellidos },
+        });
         res.status(201).json({
             ok: true,
             data: paciente,
@@ -67,6 +77,14 @@ async function update(req, res, next) {
         // Partial validation for updates
         const dto = pacientes_types_1.PacienteSchema.partial().parse(req.body);
         const paciente = await (0, pacientes_service_1.updatePaciente)(id, dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Actualizar paciente',
+            modulo: 'pacientes',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'pacientes',
+            idEntidad: id,
+            detalle: { camposActualizados: Object.keys(dto) },
+        });
         res.status(200).json({
             ok: true,
             data: paciente,
@@ -88,6 +106,13 @@ async function remove(req, res, next) {
             return;
         }
         await (0, pacientes_service_1.deletePaciente)(id);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Eliminar paciente',
+            modulo: 'pacientes',
+            tipoEvento: auditoria_types_1.TipoEvento.DELETE,
+            tablaAfectada: 'pacientes',
+            idEntidad: id,
+        });
         res.status(200).json({
             ok: true,
             mensaje: 'Paciente eliminado exitosamente',

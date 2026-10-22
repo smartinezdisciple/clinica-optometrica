@@ -12,6 +12,8 @@ exports.modifyHorario = modifyHorario;
 exports.removeHorario = removeHorario;
 const citas_types_1 = require("./citas.types");
 const citas_service_1 = require("./citas.service");
+const auditoria_context_1 = require("../auditoria/auditoria.context");
+const auditoria_types_1 = require("../auditoria/auditoria.types");
 const zod_1 = require("zod");
 const PatchEstadoSchema = zod_1.z.object({
     estado_cita: zod_1.z.enum(['confirmada', 'cancelada', 'reprogramada', 'en_espera_confirmacion', 'completada']),
@@ -58,6 +60,14 @@ async function create(req, res, next) {
     try {
         const dto = citas_types_1.CitaSchema.parse(req.body);
         const cita = await (0, citas_service_1.createCita)(dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Crear cita',
+            modulo: 'citas',
+            tipoEvento: auditoria_types_1.TipoEvento.CREATE,
+            tablaAfectada: 'citas',
+            idEntidad: cita.id_cita,
+            despues: { fecha_hora_cita: dto.fecha_hora_cita, estado: dto.estado_cita },
+        });
         res.status(201).json({
             ok: true,
             data: cita,
@@ -80,6 +90,14 @@ async function update(req, res, next) {
         }
         const dto = citas_types_1.CitaSchema.partial().parse(req.body);
         const cita = await (0, citas_service_1.updateCita)(id, dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Actualizar cita',
+            modulo: 'citas',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'citas',
+            idEntidad: id,
+            detalle: { camposActualizados: Object.keys(dto) },
+        });
         res.status(200).json({
             ok: true,
             data: cita,
@@ -102,6 +120,14 @@ async function patchEstado(req, res, next) {
         }
         const { estado_cita } = PatchEstadoSchema.parse(req.body);
         const cita = await (0, citas_service_1.changeCitaEstado)(id, estado_cita);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Cambiar estado de cita',
+            modulo: 'citas',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'citas',
+            idEntidad: id,
+            despues: { estado_cita },
+        });
         res.status(200).json({
             ok: true,
             data: cita,
@@ -151,6 +177,14 @@ async function addHorario(req, res, next) {
     try {
         const dto = citas_types_1.HorarioSchema.parse(req.body);
         const horario = await (0, citas_service_1.createHorario)(dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Crear horario',
+            modulo: 'citas',
+            tipoEvento: auditoria_types_1.TipoEvento.CREATE,
+            tablaAfectada: 'horarios_disponibles',
+            idEntidad: horario.id_horario,
+            despues: { dia_semana: horario.dia_semana },
+        });
         res.status(201).json({
             ok: true,
             data: horario,
@@ -173,6 +207,13 @@ async function modifyHorario(req, res, next) {
         }
         const dto = citas_types_1.HorarioSchema.partial().parse(req.body);
         await (0, citas_service_1.updateHorario)(id, dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Actualizar horario',
+            modulo: 'citas',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'horarios_disponibles',
+            idEntidad: id,
+        });
         res.status(200).json({
             ok: true,
             mensaje: 'Horario actualizado exitosamente',
@@ -193,6 +234,13 @@ async function removeHorario(req, res, next) {
             return;
         }
         await (0, citas_service_1.deleteHorario)(id);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Eliminar horario',
+            modulo: 'citas',
+            tipoEvento: auditoria_types_1.TipoEvento.DELETE,
+            tablaAfectada: 'horarios_disponibles',
+            idEntidad: id,
+        });
         res.status(200).json({
             ok: true,
             mensaje: 'Horario eliminado exitosamente',

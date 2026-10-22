@@ -1,33 +1,33 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { describe, expect, it, vi, beforeEach, Mocked } from 'vitest'
 
 // ── Mock del repositorio para aislar la lógica del servicio ───────────────────
-jest.mock('../../src/modules/autenticacion/autenticacion.repository', () => ({
-  findUsuarioByEmail:    jest.fn(),
-  findUsuarioById:       jest.fn(),
-  registrarIntentoLogin: jest.fn(),
-  crearSesion:           jest.fn(),
-  invalidarSesiones:     jest.fn(),
-  findSesionByRefreshToken: jest.fn(),
-  findPermisosByRol:     jest.fn(),
-  updatePassword:        jest.fn(),
-  crearTokenRecuperacion: jest.fn(),
-  findTokenRecuperacion: jest.fn(),
-  restablecerContrasenaRepo: jest.fn(),
+vi.mock('../../src/modules/autenticacion/autenticacion.repository', () => ({
+  findUsuarioByEmail:    vi.fn(),
+  findUsuarioById:       vi.fn(),
+  registrarIntentoLogin: vi.fn(),
+  crearSesion:           vi.fn(),
+  invalidarSesiones:     vi.fn(),
+  findSesionByRefreshToken: vi.fn(),
+  findPermisosByRol:     vi.fn(),
+  updatePassword:        vi.fn(),
+  crearTokenRecuperacion: vi.fn(),
+  findTokenRecuperacion: vi.fn(),
+  restablecerContrasenaRepo: vi.fn(),
 }))
 
-jest.mock('../../src/config/database', () => ({
-  query: jest.fn(),
-  withTransaction: jest.fn(),
+vi.mock('../../src/config/database', () => ({
+  query: vi.fn(),
+  withTransaction: vi.fn(),
 }))
 
-jest.mock('../../src/config/email', () => ({
-  enviarCorreo: jest.fn(() => Promise.resolve()),
+vi.mock('../../src/config/email', () => ({
+  enviarCorreo: vi.fn(() => Promise.resolve()),
 }))
 
 import * as repo from '../../src/modules/autenticacion/autenticacion.repository'
 import { loginService, logoutService, recuperarContrasenaService, restablecerContrasenaService } from '../../src/modules/autenticacion/autenticacion.service'
 
-const mockRepo = repo as jest.Mocked<typeof repo>
+const mockRepo = repo as Mocked<typeof repo>
 
 // ── Fixture de usuario ────────────────────────────────────────────────────────
 const USUARIO_FIXTURE = {
@@ -46,7 +46,7 @@ const USUARIO_FIXTURE = {
 
 describe('autenticacion.service — loginService', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     mockRepo.findPermisosByRol.mockResolvedValue(['ventas.leer', 'ventas.crear'])
     mockRepo.registrarIntentoLogin.mockResolvedValue(undefined)
     mockRepo.crearSesion.mockResolvedValue(undefined)
@@ -97,7 +97,7 @@ describe('autenticacion.service — logoutService', () => {
 
 describe('autenticacion.service — recuperarContrasenaService', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('no hace nada si el usuario no existe (no lanza error por seguridad)', async () => {
@@ -121,7 +121,7 @@ describe('autenticacion.service — recuperarContrasenaService', () => {
 
 describe('autenticacion.service — restablecerContrasenaService', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('lanza 400 si el token no existe', async () => {

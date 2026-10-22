@@ -29,10 +29,8 @@ async function findAllUsuarios() {
       r.id_rol,
       r.nombre_rol,
       e.id_empleado,
-      e.primer_nombre,
-      e.segundo_nombre,
-      e.primer_apellido,
-      e.segundo_apellido,
+      e.nombres,
+      e.apellidos,
       e.numero_telefono,
       e.correo,
       e.id_sucursal,
@@ -41,7 +39,7 @@ async function findAllUsuarios() {
     JOIN empleados e ON e.id_empleado = u.id_empleado
     JOIN roles r ON r.id_rol = u.id_rol
     LEFT JOIN sucursales s ON s.id_sucursal = e.id_sucursal
-    ORDER BY e.primer_nombre, e.primer_apellido
+    ORDER BY e.apellidos, e.nombres
   `);
     return result.rows;
 }
@@ -61,10 +59,8 @@ async function findUsuarioDetalleById(id) {
       r.id_rol,
       r.nombre_rol,
       e.id_empleado,
-      e.primer_nombre,
-      e.segundo_nombre,
-      e.primer_apellido,
-      e.segundo_apellido,
+      e.nombres,
+      e.apellidos,
       e.numero_telefono,
       e.correo,
       e.id_sucursal,
@@ -111,11 +107,11 @@ async function findPermisosByRolId(rolId) {
  */
 async function findEmpleados() {
     const result = await (0, database_1.query)(`
-    SELECT e.id_empleado, e.primer_nombre, e.segundo_nombre, e.primer_apellido, e.segundo_apellido,
+    SELECT e.id_empleado, e.nombres, e.apellidos,
            e.numero_telefono, e.correo, e.id_sucursal, e.activo, s.nombre AS nombre_sucursal
     FROM empleados e
     LEFT JOIN sucursales s ON s.id_sucursal = e.id_sucursal
-    ORDER BY e.primer_nombre
+    ORDER BY e.apellidos, e.nombres
   `);
     return result.rows;
 }
@@ -125,13 +121,11 @@ async function findEmpleados() {
 async function insertUsuarioYEmpleadoTransaccion(dto, contrasenaHash) {
     return (0, database_1.withTransaction)(async (client) => {
         // 1. Insertar empleado
-        const empResult = await client.query(`INSERT INTO empleados (primer_nombre, segundo_nombre, primer_apellido, segundo_apellido, numero_telefono, correo, id_sucursal)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id_empleado`, [
-            dto.primer_nombre,
-            dto.segundo_nombre ?? null,
-            dto.primer_apellido,
-            dto.segundo_apellido ?? null,
+        const empResult = await client.query(`INSERT INTO empleados (nombres, apellidos, numero_telefono, correo, id_sucursal)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id_empleado`, [
+            dto.nombres,
+            dto.apellidos,
             dto.numero_telefono ?? null,
             dto.correo || null,
             dto.id_sucursal,
@@ -153,19 +147,15 @@ async function updateUsuarioYEmpleadoTransaccion(idUsuario, idEmpleado, dto, con
         await client.query(`
       UPDATE empleados
       SET
-        primer_nombre = COALESCE($1, primer_nombre),
-        segundo_nombre = COALESCE($2, segundo_nombre),
-        primer_apellido = COALESCE($3, primer_apellido),
-        segundo_apellido = COALESCE($4, segundo_apellido),
-        numero_telefono = COALESCE($5, numero_telefono),
-        correo = COALESCE($6, correo),
-        id_sucursal = COALESCE($7, id_sucursal)
-      WHERE id_empleado = $8
+        nombres = COALESCE($1, nombres),
+        apellidos = COALESCE($2, apellidos),
+        numero_telefono = COALESCE($3, numero_telefono),
+        correo = COALESCE($4, correo),
+        id_sucursal = COALESCE($5, id_sucursal)
+      WHERE id_empleado = $6
     `, [
-            dto.primer_nombre ?? null,
-            dto.segundo_nombre ?? null,
-            dto.primer_apellido ?? null,
-            dto.segundo_apellido ?? null,
+            dto.nombres ?? null,
+            dto.apellidos ?? null,
             dto.numero_telefono ?? null,
             dto.correo || null,
             dto.id_sucursal ?? null,

@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface ModalProps {
   isOpen:   boolean
@@ -40,22 +41,14 @@ export function Modal({
     xl: 'max-w-2xl',
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-[6px] transition-opacity animate-fade-in"
-        onClick={onClose}
-      />
-
-      {/* Content */}
-      <div
-        className={`w-full ${sizeClasses[maxWith]} bg-white rounded-3xl shadow-float border border-surface-container relative z-10 p-6 flex flex-col max-h-[90vh] animate-scale-up`}
+        className={`w-full ${sizeClasses[maxWith]} bg-white rounded-2xl shadow-float relative p-6 flex flex-col max-h-[90vh] overflow-hidden`}
         role="dialog"
         aria-modal="true"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-surface-container mb-4 shrink-0">
+        <div className="flex items-center justify-between pb-4 mb-4 shrink-0">
           <h2 className="text-lg font-bold text-on-surface font-headline">{titulo}</h2>
           <button
             onClick={onClose}
@@ -66,11 +59,11 @@ export function Modal({
           </button>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto pr-1">
+        <div className="flex-1 overflow-y-auto px-1">
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

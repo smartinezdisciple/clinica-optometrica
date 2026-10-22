@@ -1,13 +1,13 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { describe, expect, it, vi, beforeEach, Mocked } from 'vitest'
 
 // Mock the repository
-jest.mock('../../src/modules/empresas/empresas.repository', () => ({
-  findEmpresas: jest.fn(),
-  findEmpresaById: jest.fn(),
-  findEmpresaByRuc: jest.fn(),
-  insertEmpresaTransaccion: jest.fn(),
-  updateEmpresaTransaccion: jest.fn(),
-  deleteEmpresaRepo: jest.fn(),
+vi.mock('../../src/modules/empresas/empresas.repository', () => ({
+  findEmpresas: vi.fn(),
+  findEmpresaById: vi.fn(),
+  findEmpresaByRuc: vi.fn(),
+  insertEmpresaTransaccion: vi.fn(),
+  updateEmpresaTransaccion: vi.fn(),
+  deleteEmpresaRepo: vi.fn(),
 }))
 
 import * as repo from '../../src/modules/empresas/empresas.repository'
@@ -19,15 +19,13 @@ import {
   deleteEmpresa,
 } from '../../src/modules/empresas/empresas.service'
 
-const mockRepo = repo as jest.Mocked<typeof repo>
+const mockRepo = repo as Mocked<typeof repo>
 
 const EMPRESA_FIXTURE = {
   id_cliente: 1,
   cedula: null,
-  primer_nombre: 'Carlos',
-  segundo_nombre: null,
-  primer_apellido: 'Mendoza',
-  segundo_apellido: null,
+  nombres: 'Carlos',
+  apellidos: 'Mendoza',
   tipo_cliente: 'Empresa' as const,
   numero_telefono: '2288-9999',
   correo: 'contacto@distribuidora.com',
@@ -38,7 +36,7 @@ const EMPRESA_FIXTURE = {
 
 describe('empresas.service — getEmpresas', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver la lista de empresas sin búsqueda', async () => {
@@ -58,7 +56,7 @@ describe('empresas.service — getEmpresas', () => {
 
 describe('empresas.service — getEmpresaById', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver la empresa si existe', async () => {
@@ -79,7 +77,7 @@ describe('empresas.service — getEmpresaById', () => {
 
 describe('empresas.service — createEmpresa', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe registrar una nueva empresa', async () => {
@@ -88,8 +86,8 @@ describe('empresas.service — createEmpresa', () => {
     mockRepo.findEmpresaById.mockResolvedValue(EMPRESA_FIXTURE)
 
     const dto = {
-      primer_nombre: 'Carlos',
-      primer_apellido: 'Mendoza',
+      nombres: 'Carlos',
+      apellidos: 'Mendoza',
       numero_telefono: '2288-9999',
       correo: 'contacto@distribuidora.com',
       razon_social: 'Distribuidora Lentes S.A.',
@@ -106,8 +104,8 @@ describe('empresas.service — createEmpresa', () => {
     mockRepo.findEmpresaByRuc.mockResolvedValue({ id_cliente: 2 })
 
     const dto = {
-      primer_nombre: 'Carlos',
-      primer_apellido: 'Mendoza',
+      nombres: 'Carlos',
+      apellidos: 'Mendoza',
       numero_telefono: '2288-9999',
       razon_social: 'Distribuidora Lentes S.A.',
       ruc: 'J031000000001',
@@ -122,7 +120,7 @@ describe('empresas.service — createEmpresa', () => {
 
 describe('empresas.service — updateEmpresa', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe actualizar la empresa si existe', async () => {
@@ -152,7 +150,7 @@ describe('empresas.service — updateEmpresa', () => {
 
 describe('empresas.service — deleteEmpresa', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe eliminar la empresa', async () => {

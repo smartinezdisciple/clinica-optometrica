@@ -333,7 +333,7 @@ export default function PaginaCitas() {
               <option value="">Todos los optometristas</option>
               {empleados.map((emp) => (
                 <option key={emp.id_empleado} value={emp.id_empleado}>
-                  {emp.primer_nombre} {emp.primer_apellido}
+                  {emp.nombres} {emp.apellidos}
                 </option>
               ))}
             </select>
@@ -379,7 +379,7 @@ export default function PaginaCitas() {
               <option value="">Selecciona un paciente</option>
               {pacientes.map((p) => (
                 <option key={p.id_cliente} value={p.id_cliente}>
-                  {p.primer_nombre} {p.primer_apellido} {p.cedula ? `— ${p.cedula}` : ''}
+                  {p.nombres} {p.apellidos} {p.cedula ? `— ${p.cedula}` : ''}
                 </option>
               ))}
             </select>
@@ -428,7 +428,7 @@ export default function PaginaCitas() {
                 <option value="">Selecciona optometrista</option>
                 {empleados.map((emp) => (
                   <option key={emp.id_empleado} value={emp.id_empleado}>
-                    {emp.primer_nombre} {emp.primer_apellido}
+                    {emp.nombres} {emp.apellidos}
                   </option>
                 ))}
               </select>

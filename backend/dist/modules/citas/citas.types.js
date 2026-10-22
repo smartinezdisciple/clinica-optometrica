@@ -9,11 +9,11 @@ exports.CitaSchema = zod_1.z.object({
     }),
     estado_cita: zod_1.z.enum(['confirmada', 'cancelada', 'reprogramada', 'en_espera_confirmacion', 'completada']).default('confirmada'),
     observaciones: zod_1.z.string().optional().transform(v => v === '' ? undefined : v),
-    id_cliente: zod_1.z.number({ required_error: 'El ID del paciente es obligatorio' }),
+    id_cliente: zod_1.z.number({ message: 'El ID del paciente es obligatorio' }),
     id_empleado: zod_1.z.number().optional().nullable(),
 });
 exports.HorarioSchema = zod_1.z.object({
-    id_empleado: zod_1.z.number({ required_error: 'El ID del empleado es obligatorio' }),
+    id_empleado: zod_1.z.number({ message: 'El ID del empleado es obligatorio' }),
     dia_semana: zod_1.z.number().min(1).max(7),
     hora_inicio: zod_1.z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9](:[0-5][0-9])?$/, {
         message: 'Formato de hora de inicio inválido (HH:MM)'

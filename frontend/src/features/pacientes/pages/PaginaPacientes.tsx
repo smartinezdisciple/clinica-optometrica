@@ -3,30 +3,30 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api, type ApiResponse } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
-import type { Paciente, PacienteFormInput } from '../types'
+import type { Paciente, PacienteFormInput, Empresa } from '../types'
 import { Boton } from '@/components/ui/Boton'
 import { Campo } from '@/components/ui/Campo'
+import { BarraBusqueda } from '@/components/ui/BarraBusqueda'
+import { SelectorBusqueda } from '@/components/ui/SelectorBusqueda'
 import { Tarjeta } from '@/components/ui/Tarjeta'
 import { Modal } from '@/components/ui/Modal'
 import { Tabla } from '@/components/ui/Tabla'
 import { Insignia } from '@/components/ui/Insignia'
 import { CargadorIris } from '@/components/ui/CargadorIris'
+import { useEffect } from 'react'
 
 export default function PaginaPacientes() {
   const { usuario } = useAuthStore()
   const queryClient = useQueryClient()
-  
-  const [search, setSearch] = useState('')
+
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null)
   const [quickViewPaciente, setQuickViewPaciente] = useState<Paciente | null>(null)
 
   // Form states
   const [cedula, setCedula] = useState('')
-  const [primerNombre, setPrimerNombre] = useState('')
-  const [segundoNombre, setSegundoNombre] = useState('')
-  const [primerApellido, setPrimerApellido] = useState('')
-  const [segundoApellido, setSegundoApellido] = useState('')
+  const [nombres, setNombres] = useState('')
+  const [apellidos, setApellidos] = useState('')
   const [telefono, setTelefono] = useState('')
   const [correo, setCorreo] = useState('')
   const [ocupacion, setOcupacion] = useState('')
@@ -34,10 +34,25 @@ export default function PaginaPacientes() {
   const [genero, setGenero] = useState<'Masculino' | 'Femenino' | 'Otro' | ''>('')
   const [formError, setFormError] = useState<Record<string, string>>({})
 
+  const [searchInput, setSearchInput] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchInput), 400)
+    return () => clearTimeout(timer)
+  }, [searchInput])
   // Fetching patients list
   const { data: response, isLoading } = useQuery({
-    queryKey: ['pacientes', search],
-    queryFn: () => api.get<ApiResponse<Paciente[]>>(`/pacientes?search=${encodeURIComponent(search)}`),
+    queryKey: ['pacientes', debouncedSearch],
+    queryFn: () => api.get<ApiResponse<Paciente[]>>(`/pacientes?search=${encodeURIComponent(debouncedSearch)}`),
+    refetchInterval: 15000,
+  })
+
+  const [selectedEmpresa, setSelectedEmpresa] = useState<Empresa | null>(null)
+  const { data: empresasResponse } = useQuery({
+    queryKey: ['empresas'],
+    queryFn: () => api.get<ApiResponse<Empresa[]>>('/empresas'),
+    refetchInterval: 15000,
   })
   const pacientes = response?.data ?? []
 
@@ -80,10 +95,8 @@ export default function PaginaPacientes() {
     if (paciente) {
       setSelectedPaciente(paciente)
       setCedula(paciente.cedula ?? '')
-      setPrimerNombre(paciente.primer_nombre)
-      setSegundoNombre(paciente.segundo_nombre ?? '')
-      setPrimerApellido(paciente.primer_apellido)
-      setSegundoApellido(paciente.segundo_apellido ?? '')
+      setNombres(paciente.nombres)
+      setApellidos(paciente.apellidos)
       setTelefono(paciente.numero_telefono)
       setCorreo(paciente.correo ?? '')
       setOcupacion(paciente.ocupacion ?? '')
@@ -93,18 +106,24 @@ export default function PaginaPacientes() {
         : ''
       setFechaNacimiento(fechaStr)
       setGenero(paciente.genero ?? '')
+      // Setear empresa asociada
+      if (paciente.id_empresa && empresasResponse?.data) {
+        const empresa = empresasResponse.data.find(e => e.id_cliente === paciente.id_empresa)
+        setSelectedEmpresa(empresa ?? null)
+      } else {
+        setSelectedEmpresa(null)
+      }
     } else {
       setSelectedPaciente(null)
       setCedula('')
-      setPrimerNombre('')
-      setSegundoNombre('')
-      setPrimerApellido('')
-      setSegundoApellido('')
+      setNombres('')
+      setApellidos('')
       setTelefono('')
       setCorreo('')
       setOcupacion('')
       setFechaNacimiento('')
       setGenero('')
+      setSelectedEmpresa(null)
     }
     setModalOpen(true)
   }
@@ -112,6 +131,7 @@ export default function PaginaPacientes() {
   const handleCloseModal = () => {
     setModalOpen(false)
     setSelectedPaciente(null)
+    setSelectedEmpresa(null)
     setFormError({})
   }
 
@@ -120,8 +140,8 @@ export default function PaginaPacientes() {
     setFormError({})
 
     const errors: Record<string, string> = {}
-    if (!primerNombre.trim()) errors.primer_nombre = 'El primer nombre es obligatorio'
-    if (!primerApellido.trim()) errors.primer_apellido = 'El primer apellido es obligatorio'
+    if (!nombres.trim()) errors.nombres = 'El nombre es obligatorio'
+    if (!apellidos.trim()) errors.apellidos = 'El apellido es obligatorio'
     if (!telefono.trim()) errors.numero_telefono = 'El teléfono es obligatorio'
     if (!fechaNacimiento) errors.fecha_nacimiento = 'La fecha de nacimiento es obligatoria'
 
@@ -131,10 +151,8 @@ export default function PaginaPacientes() {
     }
 
     const body: PacienteFormInput = {
-      primer_nombre: primerNombre.trim(),
-      segundo_nombre: segundoNombre.trim(),
-      primer_apellido: primerApellido.trim(),
-      segundo_apellido: segundoApellido.trim(),
+      nombres: nombres.trim(),
+      apellidos: apellidos.trim(),
       numero_telefono: telefono.trim(),
       fecha_nacimiento: fechaNacimiento,
     }
@@ -143,6 +161,8 @@ export default function PaginaPacientes() {
     if (correo.trim()) body.correo = correo.trim()
     if (ocupacion.trim()) body.ocupacion = ocupacion.trim()
     if (genero) body.genero = genero
+    if (selectedEmpresa) body.id_empresa = selectedEmpresa.id_cliente
+    else body.id_empresa = null
 
     saveMutation.mutate({
       id: selectedPaciente?.id_cliente,
@@ -151,9 +171,11 @@ export default function PaginaPacientes() {
   }
 
   const handleDelete = (id: number) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este paciente? Esta acción eliminará su registro de forma definitiva.')) {
-      deleteMutation.mutate(id)
-    }
+    toast('¿Eliminar paciente? Esta acción es definitiva y no se puede deshacer.', {
+      action: { label: 'Eliminar', onClick: () => deleteMutation.mutate(id) },
+      cancel: { label: 'Cancelar', onClick: () => {} },
+      duration: 8000,
+    })
   }
 
   const columns = [
@@ -163,7 +185,7 @@ export default function PaginaPacientes() {
       render: (row: Paciente) => (
         <div className="flex flex-col">
           <span className="font-bold text-on-surface font-headline">
-            {row.primer_nombre} {row.primer_apellido}
+            {row.nombres} {row.apellidos}
           </span>
           <span className="text-xs text-outline">{row.correo || 'Sin correo electrónico'}</span>
         </div>
@@ -176,6 +198,17 @@ export default function PaginaPacientes() {
         <span className="text-sm font-medium text-on-surface-variant font-mono">
           {row.cedula || 'N/D'}
         </span>
+      ),
+    },
+    {
+      key: 'fecha_nacimiento',
+      label: 'Fecha de Nacimiento',
+      render: (row: Paciente) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-on-surface font-headline">
+            {row.fecha_nacimiento}
+          </span>
+        </div>
       ),
     },
     { key: 'numero_telefono', label: 'Teléfono' },
@@ -225,9 +258,15 @@ export default function PaginaPacientes() {
   const totalPacientes = pacientes.length
   const promedioEdad = totalPacientes > 0
     ? Math.round(pacientes.reduce((acc, p) => {
-        const edad = new Date().getFullYear() - new Date(p.fecha_nacimiento).getFullYear()
-        return acc + edad
-      }, 0) / totalPacientes)
+      const fechaHoy = new Date()
+      const fechaNacimientoPaciente = new Date(p.fecha_nacimiento)
+      let edad = fechaHoy.getFullYear() - fechaNacimientoPaciente.getFullYear()
+      //Si aun no ha cumplido años se le resta 1
+      if (fechaHoy < new Date(fechaHoy.getFullYear(), fechaNacimientoPaciente.getMonth(), fechaNacimientoPaciente.getDate())) {
+        edad--
+      }
+      return acc + edad
+    }, 0) / totalPacientes)
     : 0
 
   return (
@@ -273,15 +312,12 @@ export default function PaginaPacientes() {
 
       {/* Search Bar & Table */}
       <div className="space-y-4">
-        <div className="w-full md:w-80">
-          <Campo
-            id="paciente-search"
-            placeholder="Buscar por nombre, cédula..."
-            icon="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <BarraBusqueda
+          id="paciente-search"
+          placeholder="Buscar por nombre, cédula..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
 
         <Tarjeta>
           {isLoading ? (
@@ -309,43 +345,24 @@ export default function PaginaPacientes() {
         <form onSubmit={handleSave} className="space-y-4 pt-1" noValidate>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo
-              id="paciente-primer-nombre"
-              label="Primer Nombre"
-              placeholder="Ej: Juan"
-              value={primerNombre}
-              onChange={(e) => setPrimerNombre(e.target.value)}
-              error={formError.primer_nombre}
+              id="paciente-nombres"
+              label="Nombres"
+              placeholder="Ej: Juan Carlos"
+              value={nombres}
+              onChange={(e) => setNombres(e.target.value)}
+              error={formError.nombres}
               disabled={saveMutation.isPending}
               required
             />
             <Campo
-              id="paciente-segundo-nombre"
-              label="Segundo Nombre"
-              placeholder="Opcional"
-              value={segundoNombre}
-              onChange={(e) => setSegundoNombre(e.target.value)}
-              disabled={saveMutation.isPending}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Campo
-              id="paciente-primer-apellido"
-              label="Primer Apellido"
-              placeholder="Ej: Pérez"
-              value={primerApellido}
-              onChange={(e) => setPrimerApellido(e.target.value)}
-              error={formError.primer_apellido}
+              id="paciente-apellidos"
+              label="Apellidos"
+              placeholder="Ej: Pérez García"
+              value={apellidos}
+              onChange={(e) => setApellidos(e.target.value)}
+              error={formError.apellidos}
               disabled={saveMutation.isPending}
               required
-            />
-            <Campo
-              id="paciente-segundo-apellido"
-              label="Segundo Apellido"
-              placeholder="Opcional"
-              value={segundoApellido}
-              onChange={(e) => setSegundoApellido(e.target.value)}
-              disabled={saveMutation.isPending}
             />
           </div>
 
@@ -419,6 +436,19 @@ export default function PaginaPacientes() {
             disabled={saveMutation.isPending}
           />
 
+          <SelectorBusqueda<Empresa>
+            label="Empresa"
+            options={empresasResponse?.data ?? []}
+            value={selectedEmpresa}
+            onChange={setSelectedEmpresa}
+            getLabel={(e) => e.razon_social}
+            getKey={(e) => e.id_cliente}
+            placeholder="Seleccionar empresa"
+            searchPlaceholder="Buscar por razón social, RUC..."
+            emptyMessage="No se encontraron empresas"
+            loading={!empresasResponse}
+          />
+
           <div className="flex justify-end gap-3 pt-6 border-t border-surface-container mt-6">
             <Boton
               type="button"
@@ -446,12 +476,12 @@ export default function PaginaPacientes() {
           <div className="space-y-6 pt-2">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-primary-gradient flex items-center justify-center text-white font-extrabold text-xl shadow-primary-glow">
-                {quickViewPaciente.primer_nombre.charAt(0)}
-                {quickViewPaciente.primer_apellido.charAt(0)}
+                {quickViewPaciente.nombres.charAt(0)}
+                {quickViewPaciente.apellidos.charAt(0)}
               </div>
               <div>
                 <h3 className="text-lg font-black text-on-surface font-headline">
-                  {quickViewPaciente.primer_nombre} {quickViewPaciente.segundo_nombre || ''} {quickViewPaciente.primer_apellido} {quickViewPaciente.segundo_apellido || ''}
+                  {quickViewPaciente.nombres} {quickViewPaciente.apellidos}
                 </h3>
                 <span className="text-xs text-outline font-semibold uppercase tracking-wider">
                   Expediente ID: #{quickViewPaciente.id_cliente}

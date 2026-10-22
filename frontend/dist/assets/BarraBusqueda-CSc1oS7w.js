@@ -1,0 +1,1 @@
+import{t as e}from"./Campo-voE-CG1v.js";import{s as t}from"./index-DVOqXxsT.js";var n=t();function r({id:t,placeholder:r,value:i,onChange:a,className:o,...s}){return(0,n.jsx)(`div`,{className:`w-full md:w-80`,children:(0,n.jsx)(e,{id:t,placeholder:r,icon:`search`,value:i,onChange:a,containerClassName:o,...s})})}export{r as t};

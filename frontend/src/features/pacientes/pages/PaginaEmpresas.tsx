@@ -5,6 +5,7 @@ import { api, type ApiResponse } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import type { Empresa, EmpresaFormInput } from '../types'
 import { Boton } from '@/components/ui/Boton'
+import { BarraBusqueda } from '@/components/ui/BarraBusqueda'
 import { Campo } from '@/components/ui/Campo'
 import { Tarjeta } from '@/components/ui/Tarjeta'
 import { Modal } from '@/components/ui/Modal'
@@ -24,14 +25,15 @@ export default function PaginaEmpresas() {
   const [ruc, setRuc] = useState('')
   const [telefono, setTelefono] = useState('')
   const [correo, setCorreo] = useState('')
-  const [primerNombre, setPrimerNombre] = useState('') // Contacto nombre
-  const [primerApellido, setPrimerApellido] = useState('') // Contacto apellido
+  const [contactoNombres, setContactoNombres] = useState('')
+  const [contactoApellidos, setContactoApellidos] = useState('')
   const [formError, setFormError] = useState<Record<string, string>>({})
 
   // Fetching companies list
   const { data: response, isLoading } = useQuery({
     queryKey: ['empresas', search],
     queryFn: () => api.get<ApiResponse<Empresa[]>>(`/empresas?search=${encodeURIComponent(search)}`),
+    refetchInterval: 15000,
   })
   const empresas = response?.data ?? []
 
@@ -73,16 +75,16 @@ export default function PaginaEmpresas() {
       setRuc(empresa.ruc)
       setTelefono(empresa.numero_telefono)
       setCorreo(empresa.correo ?? '')
-      setPrimerNombre(empresa.primer_nombre)
-      setPrimerApellido(empresa.primer_apellido)
+      setContactoNombres(empresa.nombres)
+      setContactoApellidos(empresa.apellidos)
     } else {
       setSelectedEmpresa(null)
       setRazonSocial('')
       setRuc('')
       setTelefono('')
       setCorreo('')
-      setPrimerNombre('')
-      setPrimerApellido('')
+      setContactoNombres('')
+      setContactoApellidos('')
     }
     setModalOpen(true)
   }
@@ -101,8 +103,8 @@ export default function PaginaEmpresas() {
     if (!razonSocial.trim()) errors.razon_social = 'La razón social es obligatoria'
     if (!ruc.trim()) errors.ruc = 'El RUC es obligatorio'
     if (!telefono.trim()) errors.numero_telefono = 'El teléfono de contacto es obligatorio'
-    if (!primerNombre.trim()) errors.primer_nombre = 'El nombre del contacto es obligatorio'
-    if (!primerApellido.trim()) errors.primer_apellido = 'El apellido del contacto es obligatorio'
+    if (!contactoNombres.trim()) errors.nombres = 'El nombre del contacto es obligatorio'
+    if (!contactoApellidos.trim()) errors.apellidos = 'El apellido del contacto es obligatorio'
 
     if (Object.keys(errors).length > 0) {
       setFormError(errors)
@@ -112,8 +114,8 @@ export default function PaginaEmpresas() {
     const body: EmpresaFormInput = {
       razon_social: razonSocial.trim(),
       ruc: ruc.trim(),
-      primer_nombre: primerNombre.trim(),
-      primer_apellido: primerApellido.trim(),
+      nombres: contactoNombres.trim(),
+      apellidos: contactoApellidos.trim(),
       numero_telefono: telefono.trim(),
     }
 
@@ -148,7 +150,7 @@ export default function PaginaEmpresas() {
       render: (row: Empresa) => (
         <div className="flex flex-col">
           <span className="font-medium text-on-surface">
-            {row.primer_nombre} {row.primer_apellido}
+            {row.nombres} {row.apellidos}
           </span>
           <span className="text-xs text-outline">{row.numero_telefono}</span>
         </div>
@@ -211,15 +213,12 @@ export default function PaginaEmpresas() {
 
       {/* Table & Search */}
       <div className="space-y-4">
-        <div className="w-full md:w-80">
-          <Campo
-            id="empresa-search"
-            placeholder="Buscar por razón social, RUC..."
-            icon="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+        <BarraBusqueda
+          id="empresa-search"
+          placeholder="Buscar por razón social, RUC..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
 
         <Tarjeta>
           {isLoading ? (
@@ -275,22 +274,22 @@ export default function PaginaEmpresas() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Campo
-              id="empresa-contacto-nombre"
-              label="Nombre del Contacto"
+              id="empresa-contacto-nombres"
+              label="Nombres del Contacto"
               placeholder="Ej: Carlos"
-              value={primerNombre}
-              onChange={(e) => setPrimerNombre(e.target.value)}
-              error={formError.primer_nombre}
+              value={contactoNombres}
+              onChange={(e) => setContactoNombres(e.target.value)}
+              error={formError.nombres}
               disabled={saveMutation.isPending}
               required
             />
             <Campo
-              id="empresa-contacto-apellido"
-              label="Apellido del Contacto"
+              id="empresa-contacto-apellidos"
+              label="Apellidos del Contacto"
               placeholder="Ej: Mendoza"
-              value={primerApellido}
-              onChange={(e) => setPrimerApellido(e.target.value)}
-              error={formError.primer_apellido}
+              value={contactoApellidos}
+              onChange={(e) => setContactoApellidos(e.target.value)}
+              error={formError.apellidos}
               disabled={saveMutation.isPending}
               required
             />

@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
+import cookieParser from 'cookie-parser'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import { rateLimit } from 'express-rate-limit'
@@ -12,6 +13,11 @@ import { usuariosRouter, empleadosRouter } from './modules/usuarios/usuarios.rou
 import { pacientesRouter } from './modules/pacientes/pacientes.routes'
 import { empresasRouter } from './modules/empresas/empresas.routes'
 import { citasRouter } from './modules/citas/citas.routes'
+import { inventarioRouter } from './modules/inventario/inventario.routes'
+import { comprasRouter } from './modules/compras/compras.routes'
+import { cajaRouter } from './modules/caja/caja.routes'
+import { ventasRouter } from './modules/ventas/ventas.routes'
+import { auditoriaRouter } from './modules/auditoria/auditoria.routes'
 
 const app = express()
 
@@ -44,6 +50,7 @@ app.use(rateLimit({
 // ── Body parsing ──────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '2mb' }))
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())                // Necesario para leer la cookie del refresh token
 
 // ── Logger ────────────────────────────────────────────────────────────────────
 if (env.NODE_ENV !== 'test') {
@@ -63,9 +70,11 @@ app.use('/api/empleados', empleadosRouter)
 app.use('/api/pacientes', pacientesRouter)
 app.use('/api/empresas', empresasRouter)
 app.use('/api/citas', citasRouter)
-// TODO: Agregar más routers por módulo:
-// app.use('/api/ventas',    ventasRouter)
-// app.use('/api/inventario', inventarioRouter)
+app.use('/api/inventario', inventarioRouter)
+app.use('/api/compras', comprasRouter)
+app.use('/api/caja', cajaRouter)
+app.use('/api/ventas', ventasRouter)
+app.use('/api/auditoria', auditoriaRouter)
 
 // ── Manejo centralizado de errores ────────────────────────────────────────────
 app.use(manejoErrores)

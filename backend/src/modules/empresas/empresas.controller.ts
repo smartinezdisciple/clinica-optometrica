@@ -7,6 +7,8 @@ import {
   updateEmpresa,
   deleteEmpresa,
 } from './empresas.service'
+import { registrarDesdeRequest } from '../auditoria/auditoria.context'
+import { TipoEvento } from '../auditoria/auditoria.types'
 
 /**
  * GET /api/empresas
@@ -45,6 +47,16 @@ export async function create(req: Request, res: Response, next: NextFunction): P
   try {
     const dto = EmpresaSchema.parse(req.body)
     const empresa = await createEmpresa(dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Registrar empresa',
+      modulo:        'empresas',
+      tipoEvento:    TipoEvento.CREATE,
+      tablaAfectada: 'empresas',
+      idEntidad:     empresa.id_cliente,
+      despues:       { nombre: dto.razon_social },
+    })
+
     res.status(201).json({
       ok: true,
       data: empresa,
@@ -67,6 +79,16 @@ export async function update(req: Request, res: Response, next: NextFunction): P
     }
     const dto = EmpresaSchema.partial().parse(req.body)
     const empresa = await updateEmpresa(id, dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Actualizar empresa',
+      modulo:        'empresas',
+      tipoEvento:    TipoEvento.UPDATE,
+      tablaAfectada: 'empresas',
+      idEntidad:     id,
+      detalle:       { camposActualizados: Object.keys(dto) },
+    })
+
     res.status(200).json({
       ok: true,
       data: empresa,
@@ -88,6 +110,15 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
       return
     }
     await deleteEmpresa(id)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Eliminar empresa',
+      modulo:        'empresas',
+      tipoEvento:    TipoEvento.DELETE,
+      tablaAfectada: 'empresas',
+      idEntidad:     id,
+    })
+
     res.status(200).json({
       ok: true,
       mensaje: 'Empresa eliminada exitosamente',

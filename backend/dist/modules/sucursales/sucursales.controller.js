@@ -7,9 +7,11 @@ exports.update = update;
 exports.toggleEstado = toggleEstado;
 const sucursales_types_1 = require("./sucursales.types");
 const sucursales_service_1 = require("./sucursales.service");
+const auditoria_context_1 = require("../auditoria/auditoria.context");
+const auditoria_types_1 = require("../auditoria/auditoria.types");
 const zod_1 = require("zod");
 const ToggleEstadoSchema = zod_1.z.object({
-    activa: zod_1.z.boolean({ required_error: 'El campo activa es requerido' }),
+    activa: zod_1.z.boolean({ message: 'El campo activa es requerido' }),
 });
 /**
  * GET /api/sucursales
@@ -48,6 +50,14 @@ async function create(req, res, next) {
     try {
         const dto = sucursales_types_1.SucursalSchema.parse(req.body);
         const sucursal = await (0, sucursales_service_1.registerSucursal)(dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Crear sucursal',
+            modulo: 'sucursales',
+            tipoEvento: auditoria_types_1.TipoEvento.CREATE,
+            tablaAfectada: 'sucursales',
+            idEntidad: sucursal.id_sucursal,
+            despues: { nombre: dto.nombre },
+        });
         res.status(201).json({
             ok: true,
             data: sucursal,
@@ -70,6 +80,13 @@ async function update(req, res, next) {
         }
         const dto = sucursales_types_1.SucursalSchema.parse(req.body);
         const sucursal = await (0, sucursales_service_1.modifySucursal)(id, dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Actualizar sucursal',
+            modulo: 'sucursales',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'sucursales',
+            idEntidad: id,
+        });
         res.status(200).json({
             ok: true,
             data: sucursal,
@@ -92,6 +109,14 @@ async function toggleEstado(req, res, next) {
         }
         const { activa } = ToggleEstadoSchema.parse(req.body);
         const sucursal = await (0, sucursales_service_1.changeSucursalStatus)(id, activa);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: activa ? 'Activar sucursal' : 'Desactivar sucursal',
+            modulo: 'sucursales',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'sucursales',
+            idEntidad: id,
+            detalle: { activa },
+        });
         res.status(200).json({
             ok: true,
             data: sucursal,

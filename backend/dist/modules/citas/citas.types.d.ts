@@ -26,45 +26,25 @@ export interface CitaDetalleDb extends CitaDb {
 }
 export declare const CitaSchema: z.ZodObject<{
     motivo_cita: z.ZodString;
-    fecha_hora_cita: z.ZodEffects<z.ZodString, string, string>;
-    estado_cita: z.ZodDefault<z.ZodEnum<["confirmada", "cancelada", "reprogramada", "en_espera_confirmacion", "completada"]>>;
-    observaciones: z.ZodEffects<z.ZodOptional<z.ZodString>, string | undefined, string | undefined>;
+    fecha_hora_cita: z.ZodString;
+    estado_cita: z.ZodDefault<z.ZodEnum<{
+        cancelada: "cancelada";
+        completada: "completada";
+        confirmada: "confirmada";
+        en_espera_confirmacion: "en_espera_confirmacion";
+        reprogramada: "reprogramada";
+    }>>;
+    observaciones: z.ZodPipe<z.ZodOptional<z.ZodString>, z.ZodTransform<string | undefined, string | undefined>>;
     id_cliente: z.ZodNumber;
     id_empleado: z.ZodNullable<z.ZodOptional<z.ZodNumber>>;
-}, "strip", z.ZodTypeAny, {
-    motivo_cita: string;
-    fecha_hora_cita: string;
-    estado_cita: "confirmada" | "cancelada" | "reprogramada" | "en_espera_confirmacion" | "completada";
-    id_cliente: number;
-    observaciones?: string | undefined;
-    id_empleado?: number | null | undefined;
-}, {
-    motivo_cita: string;
-    fecha_hora_cita: string;
-    id_cliente: number;
-    estado_cita?: "confirmada" | "cancelada" | "reprogramada" | "en_espera_confirmacion" | "completada" | undefined;
-    observaciones?: string | undefined;
-    id_empleado?: number | null | undefined;
-}>;
+}, z.core.$strip>;
 export declare const HorarioSchema: z.ZodObject<{
     id_empleado: z.ZodNumber;
     dia_semana: z.ZodNumber;
     hora_inicio: z.ZodString;
     hora_fin: z.ZodString;
     activo: z.ZodDefault<z.ZodBoolean>;
-}, "strip", z.ZodTypeAny, {
-    activo: boolean;
-    id_empleado: number;
-    dia_semana: number;
-    hora_inicio: string;
-    hora_fin: string;
-}, {
-    id_empleado: number;
-    dia_semana: number;
-    hora_inicio: string;
-    hora_fin: string;
-    activo?: boolean | undefined;
-}>;
+}, z.core.$strip>;
 export type CrearCitaDto = z.input<typeof CitaSchema>;
 export type ActualizarCitaDto = Partial<z.input<typeof CitaSchema>>;
 export type CrearHorarioDto = z.input<typeof HorarioSchema>;

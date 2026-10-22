@@ -7,6 +7,8 @@ exports.update = update;
 exports.remove = remove;
 const empresas_types_1 = require("./empresas.types");
 const empresas_service_1 = require("./empresas.service");
+const auditoria_context_1 = require("../auditoria/auditoria.context");
+const auditoria_types_1 = require("../auditoria/auditoria.types");
 /**
  * GET /api/empresas
  */
@@ -44,6 +46,14 @@ async function create(req, res, next) {
     try {
         const dto = empresas_types_1.EmpresaSchema.parse(req.body);
         const empresa = await (0, empresas_service_1.createEmpresa)(dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Registrar empresa',
+            modulo: 'empresas',
+            tipoEvento: auditoria_types_1.TipoEvento.CREATE,
+            tablaAfectada: 'empresas',
+            idEntidad: empresa.id_cliente,
+            despues: { nombre: dto.razon_social },
+        });
         res.status(201).json({
             ok: true,
             data: empresa,
@@ -66,6 +76,14 @@ async function update(req, res, next) {
         }
         const dto = empresas_types_1.EmpresaSchema.partial().parse(req.body);
         const empresa = await (0, empresas_service_1.updateEmpresa)(id, dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Actualizar empresa',
+            modulo: 'empresas',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'empresas',
+            idEntidad: id,
+            detalle: { camposActualizados: Object.keys(dto) },
+        });
         res.status(200).json({
             ok: true,
             data: empresa,
@@ -87,6 +105,13 @@ async function remove(req, res, next) {
             return;
         }
         await (0, empresas_service_1.deleteEmpresa)(id);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Eliminar empresa',
+            modulo: 'empresas',
+            tipoEvento: auditoria_types_1.TipoEvento.DELETE,
+            tablaAfectada: 'empresas',
+            idEntidad: id,
+        });
         res.status(200).json({
             ok: true,
             mensaje: 'Empresa eliminada exitosamente',
