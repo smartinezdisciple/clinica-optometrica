@@ -7,10 +7,12 @@ import {
   modifySucursal,
   changeSucursalStatus,
 } from './sucursales.service'
+import { registrarDesdeRequest } from '../auditoria/auditoria.context'
+import { TipoEvento } from '../auditoria/auditoria.types'
 import { z } from 'zod'
 
 const ToggleEstadoSchema = z.object({
-  activa: z.boolean({ required_error: 'El campo activa es requerido' }),
+  activa: z.boolean({ message: 'El campo activa es requerido' }),
 })
 
 /**
@@ -50,6 +52,16 @@ export async function create(req: Request, res: Response, next: NextFunction): P
   try {
     const dto = SucursalSchema.parse(req.body)
     const sucursal = await registerSucursal(dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Crear sucursal',
+      modulo:        'sucursales',
+      tipoEvento:    TipoEvento.CREATE,
+      tablaAfectada: 'sucursales',
+      idEntidad:     sucursal.id_sucursal,
+      despues:       { nombre: dto.nombre },
+    })
+
     res.status(201).json({
       ok: true,
       data: sucursal,
@@ -72,6 +84,15 @@ export async function update(req: Request, res: Response, next: NextFunction): P
     }
     const dto = SucursalSchema.parse(req.body)
     const sucursal = await modifySucursal(id, dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Actualizar sucursal',
+      modulo:        'sucursales',
+      tipoEvento:    TipoEvento.UPDATE,
+      tablaAfectada: 'sucursales',
+      idEntidad:     id,
+    })
+
     res.status(200).json({
       ok: true,
       data: sucursal,
@@ -94,6 +115,16 @@ export async function toggleEstado(req: Request, res: Response, next: NextFuncti
     }
     const { activa } = ToggleEstadoSchema.parse(req.body)
     const sucursal = await changeSucursalStatus(id, activa)
+
+    await registrarDesdeRequest(req, {
+      accion:        activa ? 'Activar sucursal' : 'Desactivar sucursal',
+      modulo:        'sucursales',
+      tipoEvento:    TipoEvento.UPDATE,
+      tablaAfectada: 'sucursales',
+      idEntidad:     id,
+      detalle:       { activa },
+    })
+
     res.status(200).json({
       ok: true,
       data: sucursal,

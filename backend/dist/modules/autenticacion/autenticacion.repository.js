@@ -20,19 +20,19 @@ async function findUsuarioByEmail(email) {
     SELECT
       u.id_usuario,
       u.id_empleado,
-      u.email,
+      e.correo AS email,
       u.contrasena_hash,
       u.activo,
       u.bloqueado,
       r.id_rol,
       r.nombre_rol,
       e.id_sucursal,
-      e.nombre,
-      e.apellido
+      e.nombres AS nombre,
+      e.apellidos AS apellido
     FROM usuarios u
     JOIN empleados e ON e.id_empleado = u.id_empleado
     JOIN roles r ON r.id_rol = u.id_rol
-    WHERE u.email = $1
+    WHERE e.correo = $1
     LIMIT 1
   `, [email]);
     return result.rows[0] ?? null;
@@ -45,15 +45,15 @@ async function findUsuarioById(idUsuario) {
     SELECT
       u.id_usuario,
       u.id_empleado,
-      u.email,
+      e.correo AS email,
       u.contrasena_hash,
       u.activo,
       u.bloqueado,
       r.id_rol,
       r.nombre_rol,
       e.id_sucursal,
-      e.nombre,
-      e.apellido
+      e.nombres AS nombre,
+      e.apellidos AS apellido
     FROM usuarios u
     JOIN empleados e ON e.id_empleado = u.id_empleado
     JOIN roles r ON r.id_rol = u.id_rol
@@ -68,18 +68,18 @@ async function findUsuarioById(idUsuario) {
  */
 async function registrarIntentoLogin(idUsuario, exitoso, ip) {
     await (0, database_1.query)(`
-    INSERT INTO intentos_login (id_usuario, exitoso, ip_address)
+    INSERT INTO intentos_login (id_usuario, exitoso, ip_origen)
     VALUES ($1, $2, $3)
   `, [idUsuario, exitoso, ip]);
 }
 /**
  * Registra una nueva sesión activa.
  */
-async function crearSesion(idUsuario, refreshToken, ip, userAgent) {
+async function crearSesion(idUsuario, refreshToken, ip, _userAgent) {
     await (0, database_1.query)(`
-    INSERT INTO sesiones (id_usuario, refresh_token, ip_address, user_agent, expira_en)
-    VALUES ($1, $2, $3, $4, NOW() + INTERVAL '7 days')
-  `, [idUsuario, refreshToken, ip, userAgent]);
+    INSERT INTO sesiones (id_usuario, token_sesion, ip_origen, fecha_expiracion)
+    VALUES ($1, $2, $3, NOW() + INTERVAL '7 days')
+  `, [idUsuario, refreshToken, ip]);
 }
 /**
  * Invalida todas las sesiones de un usuario.
@@ -94,9 +94,9 @@ async function invalidarSesiones(idUsuario) {
  */
 async function findSesionByRefreshToken(refreshToken) {
     const result = await (0, database_1.query)(`
-    SELECT id_usuario, expira_en
+    SELECT id_usuario, fecha_expiracion AS expira_en
     FROM sesiones
-    WHERE refresh_token = $1 AND expira_en > NOW()
+    WHERE token_sesion = $1 AND fecha_expiracion > NOW()
     LIMIT 1
   `, [refreshToken]);
     return result.rows[0] ?? null;

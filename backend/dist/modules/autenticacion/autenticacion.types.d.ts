@@ -2,30 +2,14 @@ import { z } from 'zod';
 export declare const LoginSchema: z.ZodObject<{
     email: z.ZodString;
     contrasena: z.ZodString;
-}, "strip", z.ZodTypeAny, {
-    email: string;
-    contrasena: string;
-}, {
-    email: string;
-    contrasena: string;
-}>;
+}, z.core.$strip>;
 export declare const RecuperarSchema: z.ZodObject<{
     email: z.ZodString;
-}, "strip", z.ZodTypeAny, {
-    email: string;
-}, {
-    email: string;
-}>;
+}, z.core.$strip>;
 export declare const RestablecerSchema: z.ZodObject<{
     token: z.ZodString;
     contrasena: z.ZodString;
-}, "strip", z.ZodTypeAny, {
-    contrasena: string;
-    token: string;
-}, {
-    contrasena: string;
-    token: string;
-}>;
+}, z.core.$strip>;
 export type LoginDto = z.infer<typeof LoginSchema>;
 export type RecuperarDto = z.infer<typeof RecuperarSchema>;
 export type RestablecerDto = z.infer<typeof RestablecerSchema>;

@@ -3,10 +3,8 @@ import { z } from 'zod'
 export interface ClienteDb {
   id_cliente: number
   cedula: string | null
-  primer_nombre: string
-  segundo_nombre: string | null
-  primer_apellido: string
-  segundo_apellido: string | null
+  nombres: string
+  apellidos: string
   tipo_cliente: 'Persona' | 'Empresa'
   numero_telefono: string
   correo: string | null
@@ -17,14 +15,13 @@ export interface PacienteDb extends ClienteDb {
   ocupacion: string | null
   fecha_nacimiento: Date | string
   genero: 'Masculino' | 'Femenino' | 'Otro' | null
+  id_empresa: number | null
 }
 
 export const PacienteSchema = z.object({
   cedula: z.string().max(16).optional().transform(v => v === '' ? undefined : v),
-  primer_nombre: z.string().min(1, 'El primer nombre es obligatorio').max(15),
-  segundo_nombre: z.string().max(15).optional().transform(v => v === '' ? undefined : v),
-  primer_apellido: z.string().min(1, 'El primer apellido es obligatorio').max(15),
-  segundo_apellido: z.string().max(15).optional().transform(v => v === '' ? undefined : v),
+  nombres: z.string().min(1, 'El nombre es obligatorio').max(60),
+  apellidos: z.string().min(1, 'El apellido es obligatorio').max(60),
   numero_telefono: z.string().min(1, 'El número de teléfono es obligatorio').max(15),
   correo: z.string().email('Formato de correo inválido').optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   ocupacion: z.string().max(30).optional().transform(v => v === '' ? undefined : v),
@@ -32,6 +29,7 @@ export const PacienteSchema = z.object({
     message: 'La fecha de nacimiento debe ser una fecha válida'
   }),
   genero: z.enum(['Masculino', 'Femenino', 'Otro']).optional(),
+  id_empresa: z.number().int().positive().optional().nullable(),
 })
 
 export type CrearPacienteDto = z.infer<typeof PacienteSchema>

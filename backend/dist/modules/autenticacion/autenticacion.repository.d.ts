@@ -15,7 +15,7 @@ export declare function registrarIntentoLogin(idUsuario: number, exitoso: boolea
 /**
  * Registra una nueva sesión activa.
  */
-export declare function crearSesion(idUsuario: number, refreshToken: string, ip: string, userAgent: string): Promise<void>;
+export declare function crearSesion(idUsuario: number, refreshToken: string, ip: string, _userAgent: string): Promise<void>;
 /**
  * Invalida todas las sesiones de un usuario.
  */

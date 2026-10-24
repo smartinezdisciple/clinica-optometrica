@@ -51,20 +51,11 @@ export default function PaginaRecuperarContrasena() {
         <div className="bg-white rounded-3xl shadow-float border border-surface-container p-8">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary-gradient flex items-center justify-center shadow-primary-glow mb-4">
-              <span
-                className="material-symbols-outlined text-white text-3xl"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                visibility
-              </span>
-            </div>
-            <h1 className="text-2xl font-extrabold font-headline bg-primary-gradient bg-clip-text text-transparent">
-              Dr. Lentes
-            </h1>
-            <p className="text-xs text-outline tracking-widest uppercase font-semibold mt-1">
-              Ópticas Clínicas
-            </p>
+            <img
+              src="/imgs/logo.png"
+              alt="Dr. Lentes"
+              className="w-16 h-16 rounded-2xl object-cover"
+            />
           </div>
 
           {!enviado ? (

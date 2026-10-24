@@ -1,19 +1,19 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { describe, expect, it, vi, beforeEach, Mocked } from 'vitest'
 
 // Mock the repository
-jest.mock('../../src/modules/usuarios/usuarios.repository', () => ({
-  findAllUsuarios:                  jest.fn(),
-  findUsuarioDetalleById:           jest.fn(),
-  findUsuarioByNombreUsuario:       jest.fn(),
-  findRoles:                        jest.fn(),
-  findPermisos:                     jest.fn(),
-  findPermisosByRolId:              jest.fn(),
-  findEmpleados:                    jest.fn(),
-  insertUsuarioYEmpleadoTransaccion: jest.fn(),
-  updateUsuarioYEmpleadoTransaccion: jest.fn(),
-  toggleUsuarioEstado:              jest.fn(),
-  desbloquearUsuarioRepo:           jest.fn(),
-  updateRolPermisos:                jest.fn(),
+vi.mock('../../src/modules/usuarios/usuarios.repository', () => ({
+  findAllUsuarios:                  vi.fn(),
+  findUsuarioDetalleById:           vi.fn(),
+  findUsuarioByNombreUsuario:       vi.fn(),
+  findRoles:                        vi.fn(),
+  findPermisos:                     vi.fn(),
+  findPermisosByRolId:              vi.fn(),
+  findEmpleados:                    vi.fn(),
+  insertUsuarioYEmpleadoTransaccion: vi.fn(),
+  updateUsuarioYEmpleadoTransaccion: vi.fn(),
+  toggleUsuarioEstado:              vi.fn(),
+  desbloquearUsuarioRepo:           vi.fn(),
+  updateRolPermisos:                vi.fn(),
 }))
 
 import * as repo from '../../src/modules/usuarios/usuarios.repository'
@@ -26,7 +26,7 @@ import {
   unlockUsuario,
 } from '../../src/modules/usuarios/usuarios.service'
 
-const mockRepo = repo as jest.Mocked<typeof repo>
+const mockRepo = repo as Mocked<typeof repo>
 
 const USUARIO_DETALLE_FIXTURE = {
   id_usuario:       1,
@@ -39,10 +39,8 @@ const USUARIO_DETALLE_FIXTURE = {
   id_rol:           1,
   nombre_rol:       'Administrador',
   id_empleado:      1,
-  primer_nombre:    'Roberto',
-  segundo_nombre:   null,
-  primer_apellido:  'Smith',
-  segundo_apellido: null,
+  nombres:          'Roberto',
+  apellidos:        'Smith',
   numero_telefono:  '2277-1234',
   correo:           'roberto@drlentes.com',
   id_sucursal:      1,
@@ -50,7 +48,7 @@ const USUARIO_DETALLE_FIXTURE = {
 
 describe('usuarios.service — getUsuariosList', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver la lista de usuarios desde el repositorio', async () => {
@@ -63,7 +61,7 @@ describe('usuarios.service — getUsuariosList', () => {
 
 describe('usuarios.service — getUsuario', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver el usuario si existe', async () => {
@@ -84,14 +82,14 @@ describe('usuarios.service — getUsuario', () => {
 
 describe('usuarios.service — registerUsuario', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('lanza 400 si el nombre de usuario ya está registrado', async () => {
     mockRepo.findUsuarioByNombreUsuario.mockResolvedValue({ id_usuario: 2 })
     const dto = {
-      primer_nombre: 'John',
-      primer_apellido: 'Doe',
+      nombres: 'John',
+      apellidos: 'Doe',
       id_sucursal: 1,
       nombre_usuario: 'rsmith',
       contrasena: 'password123',
@@ -109,8 +107,8 @@ describe('usuarios.service — registerUsuario', () => {
     mockRepo.findUsuarioDetalleById.mockResolvedValue(USUARIO_DETALLE_FIXTURE)
 
     const dto = {
-      primer_nombre: 'Roberto',
-      primer_apellido: 'Smith',
+      nombres: 'Roberto',
+      apellidos: 'Smith',
       id_sucursal: 1,
       nombre_usuario: 'rsmith',
       contrasena: 'password123',
@@ -130,7 +128,7 @@ describe('usuarios.service — registerUsuario', () => {
 
 describe('usuarios.service — modifyUsuario', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('lanza 404 si el usuario no existe', async () => {
@@ -159,7 +157,7 @@ describe('usuarios.service — modifyUsuario', () => {
     mockRepo.findUsuarioDetalleById.mockResolvedValueOnce(USUARIO_DETALLE_FIXTURE)
 
     const dto = {
-      primer_nombre: 'Roberto Modificado',
+      nombres: 'Roberto Modificado',
       nombre_usuario: 'rsmith', // Mismo nombre de usuario, no valida unicidad
     }
 
@@ -176,7 +174,7 @@ describe('usuarios.service — modifyUsuario', () => {
 
 describe('usuarios.service — changeUsuarioStatus', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('cambia el estado del usuario', async () => {
@@ -198,7 +196,7 @@ describe('usuarios.service — changeUsuarioStatus', () => {
 
 describe('usuarios.service — unlockUsuario', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('desbloquea el usuario', async () => {

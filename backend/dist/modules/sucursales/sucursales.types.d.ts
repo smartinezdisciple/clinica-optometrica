@@ -4,17 +4,7 @@ export declare const SucursalSchema: z.ZodObject<{
     direccion: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     telefono: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     correo: z.ZodUnion<[z.ZodNullable<z.ZodOptional<z.ZodString>>, z.ZodLiteral<"">]>;
-}, "strip", z.ZodTypeAny, {
-    nombre: string;
-    direccion?: string | null | undefined;
-    telefono?: string | null | undefined;
-    correo?: string | null | undefined;
-}, {
-    nombre: string;
-    direccion?: string | null | undefined;
-    telefono?: string | null | undefined;
-    correo?: string | null | undefined;
-}>;
+}, z.core.$strip>;
 export type SucursalDto = z.infer<typeof SucursalSchema>;
 export interface SucursalDb {
     id_sucursal: number;

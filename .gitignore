@@ -28,3 +28,12 @@ test-results/
 *.log
 tmp/
 temp/
+
+# Environment variables
+.env
+.env.*
+.env.local
+
+# Configuración local de OpenCode (puede contener API keys)
+/opencode.jsonc
+

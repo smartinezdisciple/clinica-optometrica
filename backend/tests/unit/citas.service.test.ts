@@ -1,18 +1,18 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { describe, expect, it, vi, beforeEach, Mocked } from 'vitest'
 
 // Mock the repository
-jest.mock('../../src/modules/citas/citas.repository', () => ({
-  findCitas: jest.fn(),
-  findCitaById: jest.fn(),
-  insertCita: jest.fn(),
-  updateCita: jest.fn(),
-  updateCitaEstado: jest.fn(),
-  findCitasConflicto: jest.fn(),
-  findHorarios: jest.fn(),
-  findHorariosPorDiaYHora: jest.fn(),
-  insertHorario: jest.fn(),
-  updateHorario: jest.fn(),
-  deleteHorarioRepo: jest.fn(),
+vi.mock('../../src/modules/citas/citas.repository', () => ({
+  findCitas: vi.fn(),
+  findCitaById: vi.fn(),
+  insertCita: vi.fn(),
+  updateCita: vi.fn(),
+  updateCitaEstado: vi.fn(),
+  findCitasConflicto: vi.fn(),
+  findHorarios: vi.fn(),
+  findHorariosPorDiaYHora: vi.fn(),
+  insertHorario: vi.fn(),
+  updateHorario: vi.fn(),
+  deleteHorarioRepo: vi.fn(),
 }))
 
 import * as repo from '../../src/modules/citas/citas.repository'
@@ -25,7 +25,7 @@ import {
   getDisponibilidad,
 } from '../../src/modules/citas/citas.service'
 
-const mockRepo = repo as jest.Mocked<typeof repo>
+const mockRepo = repo as Mocked<typeof repo>
 
 const CITA_FIXTURE = {
   id_cita: 1,
@@ -54,7 +54,7 @@ const HORARIO_FIXTURE = {
 
 describe('citas.service — getCitas', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver el listado de citas', async () => {
@@ -67,7 +67,7 @@ describe('citas.service — getCitas', () => {
 
 describe('citas.service — getCitaById', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver la cita si existe', async () => {
@@ -87,7 +87,7 @@ describe('citas.service — getCitaById', () => {
 
 describe('citas.service — createCita', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe registrar una cita si hay disponibilidad y no hay choques', async () => {
@@ -145,7 +145,7 @@ describe('citas.service — createCita', () => {
 
 describe('citas.service — getDisponibilidad', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe generar slots libres y ocupados correctamente', async () => {
@@ -172,7 +172,7 @@ describe('citas.service — getDisponibilidad', () => {
 
 describe('citas.service — updateCita', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe actualizar la cita si existe y no hay colisiones', async () => {
@@ -188,7 +188,7 @@ describe('citas.service — updateCita', () => {
 
 describe('citas.service — changeCitaEstado', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe cambiar el estado de la cita si existe', async () => {

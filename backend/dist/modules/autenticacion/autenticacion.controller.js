@@ -8,9 +8,14 @@ exports.recuperarContrasena = recuperarContrasena;
 exports.restablecerContrasena = restablecerContrasena;
 const autenticacion_types_1 = require("./autenticacion.types");
 const autenticacion_service_1 = require("./autenticacion.service");
+const auditoria_service_1 = require("../auditoria/auditoria.service");
+const auditoria_types_1 = require("../auditoria/auditoria.types");
+const manejo_errores_1 = require("../../middleware/manejo-errores");
+// `secure` se controla por env para permitir HTTP en desarrollo local.
+// En producción con HTTPS debe ser COOKIE_SECURE=true.
 const REFRESH_COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.COOKIE_SECURE === 'true',
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días en ms
     path: '/api/auth/refresh',
@@ -19,11 +24,22 @@ const REFRESH_COOKIE_OPTIONS = {
  * POST /api/auth/login
  */
 async function login(req, res, next) {
+    const ip = req.headers['x-forwarded-for'] || req.ip || '0.0.0.0';
+    const userAgent = req.headers['user-agent'] ?? 'Desconocido';
     try {
         const dto = autenticacion_types_1.LoginSchema.parse(req.body);
-        const ip = req.headers['x-forwarded-for'] || req.ip || '0.0.0.0';
-        const userAgent = req.headers['user-agent'] ?? 'Desconocido';
         const { usuario, accessToken, refreshToken } = await (0, autenticacion_service_1.loginService)(dto, ip, userAgent);
+        // Auditoría: login exitoso
+        await (0, auditoria_service_1.registrar)({
+            accion: 'Inicio de sesión',
+            modulo: 'autenticacion',
+            tipoEvento: auditoria_types_1.TipoEvento.LOGIN,
+            descripcion: `El usuario ${usuario.email} inició sesión correctamente`,
+            detalle: { userAgent },
+            idUsuario: usuario.id,
+            idSucursal: usuario.sucursalId,
+            ipOrigen: ip,
+        });
         // Refresh token en cookie HttpOnly
         res.cookie(autenticacion_service_1.REFRESH_COOKIE_NAME, refreshToken, REFRESH_COOKIE_OPTIONS);
         res.status(200).json({
@@ -33,6 +49,17 @@ async function login(req, res, next) {
         });
     }
     catch (err) {
+        // Auditoría: login fallido (no revelamos credenciales en el log)
+        if (err instanceof manejo_errores_1.AppError) {
+            await (0, auditoria_service_1.registrar)({
+                accion: 'Inicio de sesión fallido',
+                modulo: 'autenticacion',
+                tipoEvento: auditoria_types_1.TipoEvento.LOGIN_FAILED,
+                descripcion: err.message,
+                detalle: { userAgent, email: req.body?.email ?? null },
+                ipOrigen: ip,
+            });
+        }
         next(err);
     }
 }
@@ -43,6 +70,15 @@ async function logout(req, res, next) {
     try {
         if (req.usuario) {
             await (0, autenticacion_service_1.logoutService)(req.usuario.id);
+            // Auditoría: cierre de sesión
+            await (0, auditoria_service_1.registrar)({
+                accion: 'Cierre de sesión',
+                modulo: 'autenticacion',
+                tipoEvento: auditoria_types_1.TipoEvento.LOGOUT,
+                idUsuario: req.usuario.id,
+                idSucursal: req.usuario.sucursalId,
+                ipOrigen: req.headers['x-forwarded-for'] || req.ip || '0.0.0.0',
+            });
         }
         res.clearCookie(autenticacion_service_1.REFRESH_COOKIE_NAME, { path: '/api/auth/refresh' });
         res.json({ ok: true, mensaje: 'Sesión cerrada correctamente' });

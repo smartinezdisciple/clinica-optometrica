@@ -125,3 +125,47 @@ export const api = {
   delete: <T>(url: string) =>
     request<T>(url, { method: 'DELETE' }),
 }
+
+// ─── Descarga de archivos (CSV / PDF) ─────────────────────────────────────────
+export interface ArchivoDescargado {
+  blob:     Blob
+  filename: string | null
+}
+
+/**
+ * Descarga un archivo binario autenticado (p. ej. exportaciones de reportes).
+ * Reutiliza la misma renovación de token que el cliente JSON.
+ */
+export async function descargar(endpoint: string): Promise<ArchivoDescargado> {
+  const ejecutar = (): Promise<Response> => {
+    const { accessToken } = useAuthStore.getState()
+    const headers: Record<string, string> = {}
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`
+    return fetch(`${BASE_URL}${endpoint}`, { headers, credentials: 'include' })
+  }
+
+  let response = await ejecutar()
+
+  if (response.status === 401) {
+    const refreshed = await tryRefreshToken()
+    if (!refreshed) {
+      useAuthStore.getState().clearSession()
+      window.location.href = '/login'
+      throw new ApiHttpError(401, { ok: false, error: 'Sesión expirada' })
+    }
+    response = await ejecutar()
+  }
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({
+      ok: false as const,
+      error: 'Error desconocido del servidor',
+    })) as ApiError
+    throw new ApiHttpError(response.status, errorBody)
+  }
+
+  const disposition = response.headers.get('Content-Disposition') ?? ''
+  const match = /filename="?([^";]+)"?/.exec(disposition)
+
+  return { blob: await response.blob(), filename: match?.[1] ?? null }
+}

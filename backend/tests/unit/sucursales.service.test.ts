@@ -1,12 +1,12 @@
-import { describe, expect, it, jest, beforeEach } from '@jest/globals'
+import { describe, expect, it, vi, beforeEach, Mocked } from 'vitest'
 
 // Mock the repository
-jest.mock('../../src/modules/sucursales/sucursales.repository', () => ({
-  findAllSucursales:    jest.fn(),
-  findSucursalById:     jest.fn(),
-  createSucursal:       jest.fn(),
-  updateSucursal:       jest.fn(),
-  toggleSucursalEstado: jest.fn(),
+vi.mock('../../src/modules/sucursales/sucursales.repository', () => ({
+  findAllSucursales:    vi.fn(),
+  findSucursalById:     vi.fn(),
+  createSucursal:       vi.fn(),
+  updateSucursal:       vi.fn(),
+  toggleSucursalEstado: vi.fn(),
 }))
 
 import * as repo from '../../src/modules/sucursales/sucursales.repository'
@@ -18,7 +18,7 @@ import {
   changeSucursalStatus,
 } from '../../src/modules/sucursales/sucursales.service'
 
-const mockRepo = repo as jest.Mocked<typeof repo>
+const mockRepo = repo as Mocked<typeof repo>
 
 const SUCURSAL_FIXTURE = {
   id_sucursal: 1,
@@ -31,7 +31,7 @@ const SUCURSAL_FIXTURE = {
 
 describe('sucursales.service — getSucursalesList', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver la lista de sucursales desde el repositorio', async () => {
@@ -51,7 +51,7 @@ describe('sucursales.service — getSucursalesList', () => {
 
 describe('sucursales.service — getSucursal', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe devolver la sucursal si existe', async () => {
@@ -87,7 +87,7 @@ describe('sucursales.service — registerSucursal', () => {
 
 describe('sucursales.service — modifySucursal', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe actualizar la sucursal si existe', async () => {
@@ -120,7 +120,7 @@ describe('sucursales.service — modifySucursal', () => {
 
 describe('sucursales.service — changeSucursalStatus', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('debe cambiar el estado de la sucursal', async () => {

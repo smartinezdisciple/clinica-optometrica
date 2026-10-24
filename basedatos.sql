@@ -116,10 +116,8 @@ CREATE TABLE roles_permisos (
 
 CREATE TABLE empleados (
     id_empleado      SERIAL       PRIMARY KEY,
-    primer_nombre    VARCHAR(15)  NOT NULL CHECK(primer_nombre <> ''),
-    segundo_nombre   VARCHAR(15),
-    primer_apellido  VARCHAR(15)  NOT NULL CHECK(primer_apellido <> ''),
-    segundo_apellido VARCHAR(15),
+    nombres          VARCHAR(60)  NOT NULL CHECK(nombres <> ''),
+    apellidos        VARCHAR(60)  NOT NULL CHECK(apellidos <> ''),
     numero_telefono  VARCHAR(15),
     correo           VARCHAR(100) CHECK(correo LIKE '%@%'),
     id_sucursal      INTEGER      REFERENCES sucursales(id_sucursal),
@@ -175,14 +173,25 @@ CREATE TABLE sesiones (
 
 -- Registro de auditoría y eventos del sistema (Sección 15: Registro de logs)
 CREATE TABLE logs_sistema (
-    id_log       SERIAL       PRIMARY KEY,
-    id_usuario   INTEGER      REFERENCES usuarios(id_usuario),
-    accion       VARCHAR(100) NOT NULL CHECK(accion <> ''),
-    modulo       VARCHAR(50),
-    descripcion  TEXT,
-    ip_origen    VARCHAR(45),
-    fecha_evento TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+    id_log          SERIAL       PRIMARY KEY,
+    id_usuario      INTEGER      REFERENCES usuarios(id_usuario),
+    id_sucursal     INTEGER      REFERENCES sucursales(id_sucursal),
+    accion          VARCHAR(100) NOT NULL CHECK(accion <> ''),
+    modulo          VARCHAR(50),
+    tipo_evento     VARCHAR(20),
+    tabla_afectada  VARCHAR(50),
+    id_entidad      INTEGER,
+    descripcion     TEXT,
+    detalle         JSONB,
+    antes           JSONB,
+    despues         JSONB,
+    ip_origen       VARCHAR(45),
+    fecha_evento    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX idx_logs_tipo_evento  ON logs_sistema(tipo_evento);
+CREATE INDEX idx_logs_sucursal     ON logs_sistema(id_sucursal);
+CREATE INDEX idx_logs_tabla_entidad ON logs_sistema(tabla_afectada, id_entidad);
 
 
 -- =============================================================================
@@ -192,22 +201,12 @@ CREATE TABLE logs_sistema (
 CREATE TABLE clientes (
     id_cliente       SERIAL       PRIMARY KEY,
     cedula           VARCHAR(16)  UNIQUE,
-    primer_nombre    VARCHAR(15)  NOT NULL CHECK(primer_nombre <> ''),
-    segundo_nombre   VARCHAR(15),
-    primer_apellido  VARCHAR(15)  NOT NULL CHECK(primer_apellido <> ''),
-    segundo_apellido VARCHAR(15),
+    nombres          VARCHAR(60)  NOT NULL CHECK(nombres <> ''),
+    apellidos        VARCHAR(60)  NOT NULL CHECK(apellidos <> ''),
     tipo_cliente     VARCHAR(10)  NOT NULL CHECK(tipo_cliente IN ('Persona', 'Empresa')),
     numero_telefono  VARCHAR(15)  NOT NULL CHECK(numero_telefono <> ''),
     correo           VARCHAR(100) CHECK(correo LIKE '%@%'),
     fecha_registro   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Extensión de cliente para personas naturales (herencia por tabla)
-CREATE TABLE pacientes (
-    id_cliente       INTEGER     PRIMARY KEY REFERENCES clientes(id_cliente) ON DELETE CASCADE,
-    ocupacion        VARCHAR(30),
-    fecha_nacimiento DATE        NOT NULL CHECK(fecha_nacimiento <= CURRENT_DATE),
-    genero           VARCHAR(10) CHECK(genero IN ('Masculino', 'Femenino', 'Otro'))
 );
 
 -- Extensión de cliente para personas jurídicas
@@ -215,6 +214,15 @@ CREATE TABLE empresas (
     id_cliente   INTEGER      PRIMARY KEY REFERENCES clientes(id_cliente) ON DELETE CASCADE,
     razon_social VARCHAR(100) NOT NULL CHECK(razon_social <> ''),
     ruc          VARCHAR(30)  NOT NULL UNIQUE CHECK(ruc <> '')
+);
+
+-- Extensión de cliente para personas naturales (herencia por tabla)
+CREATE TABLE pacientes (
+    id_cliente       INTEGER     PRIMARY KEY REFERENCES clientes(id_cliente) ON DELETE CASCADE,
+    ocupacion        VARCHAR(30),
+    fecha_nacimiento DATE        NOT NULL CHECK(fecha_nacimiento <= CURRENT_DATE),
+    genero           VARCHAR(10) CHECK(genero IN ('Masculino', 'Femenino', 'Otro')),
+    id_empresa       INTEGER     REFERENCES empresas(id_cliente) ON DELETE SET NULL
 );
 
 
@@ -333,6 +341,9 @@ CREATE TABLE productos (
                              'accesorio', 'gafas_sol',
                              'marco_oftalmologico', 'lente_comercial'
                          )),
+    -- Tipo de manejo de inventario: 'granel' (se registra por cantidad) o
+    -- 'serializado' (cada unidad es única y se registra con su número de serie)
+    tipo_manejo          VARCHAR(12)   NOT NULL DEFAULT 'granel',
     precio_venta         NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK(precio_venta >= 0),
     precio_compra        NUMERIC(10,2)           CHECK(precio_compra >= 0),
     activo               BOOLEAN       NOT NULL DEFAULT TRUE
@@ -538,6 +549,33 @@ CREATE TABLE detalles_compra (
 
 
 -- =============================================================================
+-- UNIDADES SERIALIZADAS (productos de tipo_manejo = 'serializado')
+-- Cada fila es una unidad única (p. ej. un lente con su número de serie).
+-- El stock disponible de un producto serializado = unidades en estado 'disponible'.
+-- =============================================================================
+
+CREATE TABLE unidades_serializadas (
+    id_unidad        SERIAL        PRIMARY KEY,
+    numero_serie     VARCHAR(50)   NOT NULL UNIQUE CHECK(numero_serie <> ''),
+    -- disponible: en sucursal a la venta | reservado: apartado | vendido: salió en venta | descartado: baja/dañado
+    estado           VARCHAR(12)   NOT NULL DEFAULT 'disponible' CHECK(estado IN (
+                         'disponible', 'reservado', 'vendido', 'descartado'
+                     )),
+    fecha_ingreso    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    fecha_venta      TIMESTAMP,
+    id_producto      INTEGER       NOT NULL REFERENCES productos(id_producto),
+    id_sucursal      INTEGER       REFERENCES sucursales(id_sucursal),
+    -- Trazabilidad de adquisición: compra que trajo esta unidad
+    id_detalle_compra INTEGER      REFERENCES detalles_compra(id_detalle_compra)
+);
+
+CREATE INDEX idx_unidades_serializadas_producto
+    ON unidades_serializadas(id_producto, estado);
+CREATE INDEX idx_unidades_serializadas_serie
+    ON unidades_serializadas(numero_serie);
+
+
+-- =============================================================================
 -- MÓDULO 11: VENTAS, PEDIDOS Y PAGOS
 -- =============================================================================
 
@@ -602,7 +640,9 @@ CREATE TABLE detalles_venta (
     -- Producto del inventario comercial (opcional)
     id_producto      INTEGER       REFERENCES productos(id_producto),
     -- Lente clínico personalizado (opcional)
-    id_lente_clinico INTEGER       REFERENCES lentes_clinicos(id_lente_clinico)
+    id_lente_clinico INTEGER       REFERENCES lentes_clinicos(id_lente_clinico),
+    -- Unidad serializada vendida (solo productos tipo_manejo = 'serializado')
+    id_unidad_serializada INTEGER   REFERENCES unidades_serializadas(id_unidad)
 );
 
 CREATE TABLE detalles_pedido (
@@ -1129,7 +1169,7 @@ FOR EACH ROW EXECUTE FUNCTION fn_log_cambios_usuario();
 
 -- Clientes
 CREATE INDEX idx_clientes_cedula   ON clientes(cedula);
-CREATE INDEX idx_clientes_nombre   ON clientes(primer_apellido, primer_nombre);
+CREATE INDEX idx_clientes_nombre   ON clientes(apellidos, nombres);
 CREATE INDEX idx_clientes_tipo     ON clientes(tipo_cliente);
 
 -- Citas
@@ -1229,3 +1269,12 @@ INSERT INTO metodos_pago (nombre_metodo_pago, tipo_metodo_pago) VALUES
 -- Configuración de respaldo diario a las 2:00 AM por defecto (Sección 6)
 INSERT INTO configuraciones_respaldo (hora_ejecucion, frecuencia)
 VALUES ('02:00:00', 'diario');
+
+-- Usuario administrador por defecto
+-- Correo: admin@drlentes.com | Contraseña: Admin1234
+INSERT INTO empleados (nombres, apellidos, correo, id_sucursal, activo)
+VALUES ('Roberto', 'Smith', 'admin@drlentes.com', 1, TRUE);
+
+INSERT INTO usuarios (nombre_usuario, contrasena_hash, id_empleado, id_rol, activo, bloqueado)
+SELECT 'admin', '$2b$12$xjAoxwIVbk3EFHQUo54BjOaBNw9ZPb7W8WF9j0PIaM8kIh0BDd2vW', id_empleado, 1, TRUE, FALSE
+FROM empleados WHERE correo = 'admin@drlentes.com';

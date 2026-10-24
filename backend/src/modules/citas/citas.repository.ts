@@ -22,8 +22,8 @@ export async function findCitas(filtros: {
     SELECT
       ci.id_cita, ci.motivo_cita, ci.fecha_hora_cita, ci.estado_cita, ci.observaciones, ci.fecha_proxima_revision,
       ci.id_cliente, ci.id_empleado,
-      cl.primer_nombre AS paciente_nombre, cl.primer_apellido AS paciente_apellido, cl.cedula AS paciente_cedula,
-      em.primer_nombre AS optometrista_nombre, em.primer_apellido AS optometrista_apellido
+      cl.nombres AS paciente_nombre, cl.apellidos AS paciente_apellido, cl.cedula AS paciente_cedula,
+      em.nombres AS optometrista_nombre, em.apellidos AS optometrista_apellido
     FROM citas ci
     JOIN clientes cl ON cl.id_cliente = ci.id_cliente
     LEFT JOIN empleados em ON em.id_empleado = ci.id_empleado
@@ -66,8 +66,8 @@ export async function findCitaById(id: number): Promise<CitaDetalleDb | null> {
     `SELECT
        ci.id_cita, ci.motivo_cita, ci.fecha_hora_cita, ci.estado_cita, ci.observaciones, ci.fecha_proxima_revision,
        ci.id_cliente, ci.id_empleado,
-       cl.primer_nombre AS paciente_nombre, cl.primer_apellido AS paciente_apellido, cl.cedula AS paciente_cedula,
-       em.primer_nombre AS optometrista_nombre, em.primer_apellido AS optometrista_apellido
+       cl.nombres AS paciente_nombre, cl.apellidos AS paciente_apellido, cl.cedula AS paciente_cedula,
+       em.nombres AS optometrista_nombre, em.apellidos AS optometrista_apellido
      FROM citas ci
      JOIN clientes cl ON cl.id_cliente = ci.id_cliente
      LEFT JOIN empleados em ON em.id_empleado = ci.id_empleado

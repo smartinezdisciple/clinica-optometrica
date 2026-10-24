@@ -1,6 +1,6 @@
 import 'dotenv/config';
 export declare const env: {
-    NODE_ENV: "development" | "test" | "production";
+    NODE_ENV: "development" | "production" | "test";
     PORT: number;
     FRONTEND_URL: string;
     DB_HOST: string;

@@ -13,12 +13,14 @@ exports.updateRolPermisosHandler = updateRolPermisosHandler;
 exports.listEmpleados = listEmpleados;
 const usuarios_types_1 = require("./usuarios.types");
 const usuarios_service_1 = require("./usuarios.service");
+const auditoria_context_1 = require("../auditoria/auditoria.context");
+const auditoria_types_1 = require("../auditoria/auditoria.types");
 const zod_1 = require("zod");
 const ToggleEstadoSchema = zod_1.z.object({
-    activo: zod_1.z.boolean({ required_error: 'El campo activo es requerido' }),
+    activo: zod_1.z.boolean({ message: 'El campo activo es requerido' }),
 });
 const PermisosRolSchema = zod_1.z.object({
-    permisosIds: zod_1.z.array(zod_1.z.number(), { required_error: 'La lista de permisosIds es requerida' }),
+    permisosIds: zod_1.z.array(zod_1.z.number(), { message: 'La lista de permisosIds es requerida' }),
 });
 /**
  * GET /api/usuarios
@@ -56,6 +58,14 @@ async function createUsuario(req, res, next) {
     try {
         const dto = usuarios_types_1.CrearUsuarioSchema.parse(req.body);
         const usuario = await (0, usuarios_service_1.registerUsuario)(dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Crear usuario',
+            modulo: 'usuarios',
+            tipoEvento: auditoria_types_1.TipoEvento.CREATE,
+            tablaAfectada: 'usuarios',
+            idEntidad: usuario.id_usuario,
+            despues: { nombres: dto.nombres, apellidos: dto.apellidos, nombre_usuario: dto.nombre_usuario },
+        });
         res.status(201).json({
             ok: true,
             data: usuario,
@@ -78,6 +88,14 @@ async function updateUsuario(req, res, next) {
         }
         const dto = usuarios_types_1.ActualizarUsuarioSchema.parse(req.body);
         const usuario = await (0, usuarios_service_1.modifyUsuario)(id, dto);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Actualizar usuario',
+            modulo: 'usuarios',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'usuarios',
+            idEntidad: usuario.id_usuario,
+            detalle: { camposActualizados: Object.keys(dto) },
+        });
         res.status(200).json({
             ok: true,
             data: usuario,
@@ -100,6 +118,14 @@ async function toggleEstadoUsuario(req, res, next) {
         }
         const { activo } = ToggleEstadoSchema.parse(req.body);
         await (0, usuarios_service_1.changeUsuarioStatus)(id, activo);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: activo ? 'Habilitar usuario' : 'Inhabilitar usuario',
+            modulo: 'usuarios',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'usuarios',
+            idEntidad: id,
+            detalle: { activo },
+        });
         res.status(200).json({
             ok: true,
             mensaje: activo ? 'Usuario habilitado exitosamente' : 'Usuario inhabilitado exitosamente',
@@ -120,6 +146,13 @@ async function unlockUser(req, res, next) {
             return;
         }
         await (0, usuarios_service_1.unlockUsuario)(id);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Desbloquear usuario',
+            modulo: 'usuarios',
+            tipoEvento: auditoria_types_1.TipoEvento.UPDATE,
+            tablaAfectada: 'usuarios',
+            idEntidad: id,
+        });
         res.status(200).json({ ok: true, mensaje: 'Usuario desbloqueado exitosamente' });
     }
     catch (err) {
@@ -179,6 +212,14 @@ async function updateRolPermisosHandler(req, res, next) {
         }
         const { permisosIds } = PermisosRolSchema.parse(req.body);
         await (0, usuarios_service_1.assignRolPermisos)(rolId, permisosIds);
+        await (0, auditoria_context_1.registrarDesdeRequest)(req, {
+            accion: 'Actualizar permisos de rol',
+            modulo: 'usuarios',
+            tipoEvento: auditoria_types_1.TipoEvento.CONFIG,
+            tablaAfectada: 'roles_permisos',
+            idEntidad: rolId,
+            detalle: { permisosIds },
+        });
         res.status(200).json({ ok: true, mensaje: 'Permisos del rol actualizados exitosamente' });
     }
     catch (err) {

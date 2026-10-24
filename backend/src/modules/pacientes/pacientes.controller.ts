@@ -7,6 +7,8 @@ import {
   updatePaciente,
   deletePaciente,
 } from './pacientes.service'
+import { registrarDesdeRequest } from '../auditoria/auditoria.context'
+import { TipoEvento } from '../auditoria/auditoria.types'
 
 /**
  * GET /api/pacientes
@@ -45,6 +47,16 @@ export async function create(req: Request, res: Response, next: NextFunction): P
   try {
     const dto = PacienteSchema.parse(req.body)
     const paciente = await createPaciente(dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Registrar paciente',
+      modulo:        'pacientes',
+      tipoEvento:    TipoEvento.CREATE,
+      tablaAfectada: 'pacientes',
+      idEntidad:     paciente.id_cliente,
+      despues:       { nombres: dto.nombres, apellidos: dto.apellidos },
+    })
+
     res.status(201).json({
       ok: true,
       data: paciente,
@@ -68,6 +80,16 @@ export async function update(req: Request, res: Response, next: NextFunction): P
     // Partial validation for updates
     const dto = PacienteSchema.partial().parse(req.body)
     const paciente = await updatePaciente(id, dto)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Actualizar paciente',
+      modulo:        'pacientes',
+      tipoEvento:    TipoEvento.UPDATE,
+      tablaAfectada: 'pacientes',
+      idEntidad:     id,
+      detalle:       { camposActualizados: Object.keys(dto) },
+    })
+
     res.status(200).json({
       ok: true,
       data: paciente,
@@ -89,6 +111,15 @@ export async function remove(req: Request, res: Response, next: NextFunction): P
       return
     }
     await deletePaciente(id)
+
+    await registrarDesdeRequest(req, {
+      accion:        'Eliminar paciente',
+      modulo:        'pacientes',
+      tipoEvento:    TipoEvento.DELETE,
+      tablaAfectada: 'pacientes',
+      idEntidad:     id,
+    })
+
     res.status(200).json({
       ok: true,
       mensaje: 'Paciente eliminado exitosamente',
